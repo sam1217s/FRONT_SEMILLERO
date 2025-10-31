@@ -130,9 +130,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import ProjectCard from '../../components/ProjectCard.vue'
+import { getData, putData } from '../../services/apiClient'
 
 const $q = useQuasar()
 
@@ -143,6 +144,26 @@ const selectedProject = ref(null)
 const rejectComment = ref('')
 
 // Datos de proyectos pendientes de confirmación
+const proyectosPendientes = ref([])
+
+// Cargar proyectos pendientes
+const cargarProyectosPendientes = async () => {
+  try {
+    const response = await getData('/projects/pending')
+    proyectosPendientes.value = (response.msg || []).map(p => ({
+      id: p._id,
+      titulo: p.project_name,
+      descripcion: p.description || 'Sin descripción',
+      investigador: p.id_leader?.name || 'No asignado',
+      fecha: p.createdAt ? new Date(p.createdAt).toLocaleDateString('es-CO') : 'N/A',
+      ...p
+    }))
+  } catch (error) {
+    console.error('Error al cargar proyectos pendientes:', error)
+    $q.notify({ type: 'negative', message: 'Error al cargar proyectos pendientes', position: 'top', timeout: 3000 })
+    proyectosPendientes.value = []
+  }
+}
 
 
 // Handlers para los eventos de las tarjetas
@@ -171,55 +192,74 @@ const handleReject = (proyecto) => {
 }
 
 // Función para confirmar la aprobación
-const confirmApprove = () => {
+const confirmApprove = async () => {
   if (!selectedProject.value) return
-  
-  // Remover el proyecto de la lista de pendientes
-  const index = proyectosPendientes.value.findIndex(p => p.id === selectedProject.value.id)
-  if (index !== -1) {
-    proyectosPendientes.value.splice(index, 1)
+
+  try {
+    await putData(`/projects/approve/${selectedProject.value.id}`)
+
+    $q.notify({
+      type: 'positive',
+      message: `Proyecto "${selectedProject.value.titulo}" aprobado exitosamente`,
+      position: 'top',
+      timeout: 4000
+    })
+
+    // Recargar proyectos pendientes
+    await cargarProyectosPendientes()
+  } catch (error) {
+    console.error('Error al aprobar proyecto:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Error al aprobar el proyecto',
+      position: 'top',
+      timeout: 3000
+    })
+  } finally {
+    // Cerrar modal y limpiar
+    showApproveDialog.value = false
+    selectedProject.value = null
   }
-  
-  $q.notify({
-    type: 'positive',
-    message: `Proyecto "${selectedProject.value.titulo}" aprobado exitosamente`,
-    position: 'top',
-    timeout: 4000
-  })
-  
-  // Cerrar modal y limpiar
-  showApproveDialog.value = false
-  selectedProject.value = null
-  
-  // TODO: Implementar llamada al backend para aprobar
-  // await postData(`/projects/${selectedProject.value.id}/approve`)
 }
 
 // Función para confirmar el rechazo
-const confirmReject = () => {
+const confirmReject = async () => {
   if (!selectedProject.value || !rejectComment.value.trim()) return
-  
-  // Remover el proyecto de la lista de pendientes
-  const index = proyectosPendientes.value.findIndex(p => p.id === selectedProject.value.id)
-  if (index !== -1) {
-    proyectosPendientes.value.splice(index, 1)
+
+  try {
+    await putData(`/projects/reject/${selectedProject.value.id}`, {
+      comment: rejectComment.value
+    })
+
+    $q.notify({
+      type: 'negative',
+      message: `Proyecto "${selectedProject.value.titulo}" rechazado`,
+      position: 'top',
+      timeout: 4000
+    })
+
+    // Recargar proyectos pendientes
+    await cargarProyectosPendientes()
+  } catch (error) {
+    console.error('Error al rechazar proyecto:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Error al rechazar el proyecto',
+      position: 'top',
+      timeout: 3000
+    })
+  } finally {
+    // Cerrar modal y limpiar
+    showRejectDialog.value = false
+    selectedProject.value = null
+    rejectComment.value = ''
   }
-  
-  $q.notify({
-    type: 'negative',
-    message: `Proyecto "${selectedProject.value.titulo}" rechazado`,
-    position: 'top',
-    timeout: 4000
-  })
-  
-  // Cerrar modal y limpiar
-  showRejectDialog.value = false
-  selectedProject.value = null
-  rejectComment.value = ''
-  
-  // TODO: Implementar llamada al backend para rechazar
-  // await postData(`/projects/${selectedProject.value.id}/reject`, { comment: rejectComment.value })
 }
+
+// Cargar proyectos pendientes al montar el componente
+onMounted(() => {
+  cargarProyectosPendientes()
+})
 </script>
 
 <style scoped>

@@ -260,9 +260,8 @@ const cargarCentros = async () => {
     centrosOptions.value = response.msg || response.data || []
   } catch (error) {
     console.error('Error al cargar centros:', error)
-    centrosOptions.value = [
-      { _id: '68fffcd7a42032bc57fa3c65', name: 'Centro de Pruebas SENA', city: 'Bogotá', department: 'Cundinamarca' }
-    ]
+    $q.notify({ type: 'negative', message: 'Error al cargar los centros de investigación', position: 'top', timeout: 3000 })
+    centrosOptions.value = []
   }
 }
 
@@ -294,12 +293,7 @@ const cargarGrupos = async () => {
   } catch (error) {
     console.error('Error al cargar grupos:', error)
     $q.notify({ type: 'negative', message: 'Error al cargar los grupos del servidor', position: 'top', timeout: 3000 })
-
-    grupos.value = [
-      { id: 1, proyecto: 'GRUPO DE INTELIGENCIA ARTIFICIAL', investigadores: 15, categoria: 'Agricultura', estado: 'Activo' },
-      { id: 2, proyecto: 'GRUPO DE BIOTECNOLOGÍA', investigadores: 12, categoria: 'Salud', estado: 'Activo' },
-      { id: 3, proyecto: 'GRUPO DE ENERGÍAS RENOVABLES', investigadores: 8, categoria: 'Ambiente', estado: 'Inactivo' }
-    ]
+    grupos.value = []
     aplicarFiltro()
   } finally {
     loading.value = false

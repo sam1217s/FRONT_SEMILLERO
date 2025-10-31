@@ -142,21 +142,14 @@
 
 <script setup>
 import Table from '../../components/table.vue'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { getData, putData } from '../../services/apiClient'
 
 const $q = useQuasar()
 
-// Datos de proyectos (ejemplo con una fila para probar)
-const proyectos = ref([
-  {
-    id: 1,
-    nombre: 'GRUPO DE ENERGÍAS RENOVABLES',
-    investigadores: 15,
-    estado: 'Activo',
-    vigencia: '2023-2025'
-  }
-])
+// Datos de proyectos
+const proyectos = ref([])
 
 // Columnas para la tabla de proyectos
 const columns = [
@@ -200,11 +193,19 @@ const columns = [
 // Función para cargar proyectos desde el backend
 const cargarProyectos = async () => {
   try {
-    // TODO: Implementar llamada al backend
-    // const response = await getData('/projects/list')
-    // proyectos.value = response.msg
+    const response = await getData('/projects/list')
+    proyectos.value = (response.msg || []).map(p => ({
+      id: p._id,
+      nombre: p.project_name,
+      investigadores: 0, // TODO: Calculate from backend data
+      estado: p.status === 'Active' ? 'Activo' : 'Inactivo',
+      vigencia: p.start_date && p.end_date ? `${new Date(p.start_date).getFullYear()}-${new Date(p.end_date).getFullYear()}` : 'N/A',
+      ...p
+    }))
   } catch (error) {
     console.error('Error al cargar proyectos:', error)
+    $q.notify({ type: 'negative', message: 'Error al cargar proyectos del servidor', position: 'top', timeout: 3000 })
+    proyectos.value = []
   }
 }
 
@@ -216,13 +217,21 @@ const selectedProject = ref(null)
 
 // Handlers para los eventos de la tabla
 const handleAddProject = () => {
-  console.log('Agregar nuevo proyecto')
-  // TODO: Implementar lógica para agregar proyecto
+  $q.notify({
+    type: 'info',
+    message: 'Funcionalidad de agregar proyecto en desarrollo',
+    position: 'top',
+    timeout: 2000
+  })
 }
 
 const handleViewProject = (project) => {
-  console.log('Ver proyecto:', project)
-  // TODO: Implementar lógica para ver proyecto
+  $q.notify({
+    type: 'info',
+    message: `Ver proyecto: ${project.nombre}`,
+    position: 'top',
+    timeout: 2000
+  })
 }
 
 const handleApproveProject = (project) => {
@@ -238,27 +247,37 @@ const handleRejectProject = (project) => {
 }
 
 // Función para confirmar la aprobación
-const confirmApprove = () => {
+const confirmApprove = async () => {
   if (!selectedProject.value) return
-  
-  console.log('Aprobar proyecto:', selectedProject.value)
-  
-  // TODO: Implementar lógica para aprobar proyecto
-  // Ejemplo: await putData(`/projects/${selectedProject.value.id}/approve`)
-  
-  $q.notify({
-    type: 'positive',
-    message: `Proyecto "${selectedProject.value.nombre}" aprobado exitosamente`,
-    position: 'top',
-    timeout: 4000
-  })
-  
-  // Cerrar modal y limpiar
-  showApproveDialog.value = false
-  selectedProject.value = null
+
+  try {
+    await putData(`/projects/approve/${selectedProject.value.id}`)
+
+    $q.notify({
+      type: 'positive',
+      message: `Proyecto "${selectedProject.value.nombre}" aprobado exitosamente`,
+      position: 'top',
+      timeout: 4000
+    })
+
+    // Recargar proyectos
+    await cargarProyectos()
+  } catch (error) {
+    console.error('Error al aprobar proyecto:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Error al aprobar el proyecto',
+      position: 'top',
+      timeout: 3000
+    })
+  } finally {
+    // Cerrar modal y limpiar
+    showApproveDialog.value = false
+    selectedProject.value = null
+  }
 }
 
-const confirmReject = () => {
+const confirmReject = async () => {
   if (!rejectComment.value.trim()) {
     $q.notify({
       type: 'negative',
@@ -268,29 +287,41 @@ const confirmReject = () => {
     })
     return
   }
-  
-  console.log('Desaprobar proyecto:', selectedProject.value, 'Comentario:', rejectComment.value)
-  
-  // TODO: Implementar lógica para desaprobar proyecto
-  // Ejemplo: await putData(`/projects/${selectedProject.value.id}/reject`, { comment: rejectComment.value })
-  
-  $q.notify({
-    type: 'info',
-    message: 'Proyecto desaprobado',
-    position: 'top',
-    timeout: 3000
-  })
-  
-  // Limpiar formulario y cerrar modal
-  rejectComment.value = ''
-  showRejectDialog.value = false
-  selectedProject.value = null
+
+  try {
+    await putData(`/projects/reject/${selectedProject.value.id}`, {
+      comment: rejectComment.value
+    })
+
+    $q.notify({
+      type: 'info',
+      message: 'Proyecto desaprobado',
+      position: 'top',
+      timeout: 3000
+    })
+
+    // Recargar proyectos
+    await cargarProyectos()
+  } catch (error) {
+    console.error('Error al desaprobar proyecto:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Error al desaprobar el proyecto',
+      position: 'top',
+      timeout: 3000
+    })
+  } finally {
+    // Limpiar formulario y cerrar modal
+    rejectComment.value = ''
+    showRejectDialog.value = false
+    selectedProject.value = null
+  }
 }
 
 // Cargar proyectos al montar el componente
-// onMounted(() => {
-//   cargarProyectos()
-// })
+onMounted(() => {
+  cargarProyectos()
+})
 </script>
 
 <style scoped>

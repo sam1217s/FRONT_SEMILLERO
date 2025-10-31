@@ -128,6 +128,7 @@
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
+import { getData } from '../../services/apiClient'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -144,42 +145,31 @@ const estadisticas = ref({
 const alertas = ref([])
 
 // Función para cargar estadísticas
-const cargarEstadisticas = () => {
-  // Datos de ejemplo (en producción vendrían del backend)
-  estadisticas.value = {
-    investigadoresActivos: 45,
-    gruposActivos: 12,
-    semillerosActivos: 8,
-    proyectosActivos: 24
-  }
-  
-  // Cargar alertas
-  alertas.value = [
-    {
-      id: 1,
-      tipo: 'red',
-      mensaje: '3 contratos vencen este mes',
-      accion: 'ver_contratos'
-    },
-    {
-      id: 2,
-      tipo: 'yellow',
-      mensaje: '2 proyectos requieren aprobación',
-      accion: 'ver_proyectos_pendientes'
-    },
-    {
-      id: 3,
-      tipo: 'yellow',
-      mensaje: '5 solicitudes de recursos pendientes',
-      accion: 'ver_solicitudes'
-    },
-    {
-      id: 4,
-      tipo: 'blue',
-      mensaje: '1 nuevo producto registrado',
-      accion: 'ver_productos'
+const cargarEstadisticas = async () => {
+  try {
+    const response = await getData('/statistics/general')
+    estadisticas.value = {
+      investigadoresActivos: response.msg?.investigadoresActivos || 0,
+      gruposActivos: response.msg?.gruposActivos || 0,
+      semillerosActivos: response.msg?.semillerosActivos || 0,
+      proyectosActivos: response.msg?.proyectosActivos || 0
     }
-  ]
+  } catch (error) {
+    console.error('Error al cargar estadísticas:', error)
+    $q.notify({ type: 'negative', message: 'Error al cargar estadísticas del servidor', position: 'top', timeout: 3000 })
+  }
+}
+
+// Función para cargar alertas
+const cargarAlertas = async () => {
+  try {
+    const response = await getData('/alerts/list')
+    alertas.value = response.msg || []
+  } catch (error) {
+    console.error('Error al cargar alertas:', error)
+    $q.notify({ type: 'negative', message: 'Error al cargar alertas del servidor', position: 'top', timeout: 3000 })
+    alertas.value = []
+  }
 }
 
 // Función para manejar clics en alertas
@@ -254,6 +244,7 @@ const handleFiltros = () => {
 // Cargar datos al montar el componente
 onMounted(() => {
   cargarEstadisticas()
+  cargarAlertas()
 })
 </script>
 
