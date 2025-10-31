@@ -3,8 +3,9 @@
     <div class="row q-col-gutter-md">
       <div class="col-12">
         <q-card class="shadow-1">
+          <!-- HEADER -->
           <q-card-section>
-            <div class="text-h6 text-weight-bold text-primary">
+            <div class="page-title">
               <q-icon name="meeting_room" class="q-mr-sm" />
               Reuniones
             </div>
@@ -12,42 +13,38 @@
               Programa y gestiona reuniones con tu equipo
             </div>
           </q-card-section>
-          
-          <q-card-section>
-            <Table
-              :rows="tableRows"
-              :columns="columns"
-              title="REUNIONES"
-              add-button-label="NUEVA REUNIÓN"
-              @add-item="openCreate"
-            >
-              <template #filters>
-                <div class="row q-gutter-sm items-center">
-                  <q-input v-model="search" dense outlined clearable placeholder="Buscar por asunto o lugar"
-                    @update:model-value="applyFilter" style="min-width: 240px;">
-                    <template #prepend>
-                      <q-icon name="search" />
-                    </template>
-                  </q-input>
-                  <q-select v-model="filtroEstado" :options="estadoOptions" option-label="label" option-value="value"
-                    emit-value map-options dense outlined clearable label="Estado" style="min-width: 160px;"
-                    @update:model-value="applyFilter" />
-                  <q-select v-model="filtroProyecto" :options="projectOptions" option-label="label" option-value="value"
-                    emit-value map-options dense outlined clearable label="Proyecto" style="min-width: 200px;"
-                    @update:model-value="applyFilter" />
-                </div>
-              </template>
 
+          <!-- TABLA -->
+          <q-card-section>
+            <!-- FILTROS -->
+            <div class="row q-col-gutter-md q-mb-md">
+              <div class="col-12 col-md-6">
+                <q-input v-model="busqueda" filled clearable label="Buscar" placeholder="Buscar por asunto o lugar...">
+                  <template #prepend><q-icon name="search" /></template>
+                </q-input>
+              </div>
+              <div class="col-6 col-md-3">
+                <q-select v-model="filtroEstado" :options="estadoOptions" option-label="label" option-value="value"
+                  emit-value map-options filled clearable label="Estado" />
+              </div>
+              <div class="col-6 col-md-3">
+                <q-select v-model="filtroProyecto" :options="projectOptions" option-label="label" option-value="value"
+                  emit-value map-options filled clearable label="Proyecto" />
+              </div>
+            </div>
+
+            <!-- LOADING -->
+            <div v-if="loading" class="text-center q-pa-xl">
+              <q-spinner-dots size="50px" color="primary" />
+              <div class="text-h6 text-grey-6 q-mt-md">Cargando reuniones...</div>
+            </div>
+
+            <!-- TABLA PRINCIPAL -->
+            <Table v-else :rows="rowsMostrados" :columns="columns" title="REUNIONES"
+              add-button-label="NUEVA REUNIÓN" @add-item="openCreate">
               <template #options-column="{ row }">
-                <ActionButtons
-                  :row="row"
-                  :show-view="true"
-                  :show-edit="true"
-                  view-tooltip="Ver detalle"
-                  edit-tooltip="Editar reunión"
-                  @view="openDetail"
-                  @edit="openEdit"
-                />
+                <ActionButtons :row="row" :show-view="true" :show-edit="true" :show-toggle-status="false"
+                  view-tooltip="Ver detalle" edit-tooltip="Editar reunión" @view="openDetail" @edit="openEdit" />
               </template>
             </Table>
           </q-card-section>
@@ -55,147 +52,138 @@
       </div>
     </div>
 
-    <!-- Detalle -->
-    <q-dialog v-model="showDetail">
-      <q-card style="min-width: 640px; max-width: 900px">
-        <q-card-section class="detail-header">
-          <div class="row items-center justify-between">
-            <div class="text-h6">Detalle de la reunión</div>
-            <q-badge :color="(current?.status === 'Active') ? 'positive' : 'grey'">
-              {{ current?.status === 'Active' ? 'Activo' : 'Inactivo' }}
-            </q-badge>
+    <!-- PERFIL -->
+    <q-dialog v-model="showProfileDialog">
+      <q-card style="min-width: 800px; max-width: 1000px">
+        <q-card-section class="modal-header">
+          <div class="text-h6">
+            <q-icon name="visibility" class="q-mr-sm" /> Detalle de Reunión
           </div>
-          <div class="text-caption">Información completa de la reunión</div>
+          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
-        <q-separator />
-        <q-card-section>
-          <div class="row q-col-gutter-lg">
+
+        <q-card-section v-if="selectedReunion">
+          <div class="row q-col-gutter-md">
             <div class="col-12">
-              <div class="text-subtitle1 text-primary">{{ current?.title || current?.topic || '-' }}</div>
+              <div class="text-h6 text-primary q-mb-md">{{ selectedReunion.title || selectedReunion.topic || '-' }}</div>
             </div>
+
             <div class="col-12 col-md-6">
-              <q-list dense separator>
-                <q-item>
-                  <q-item-section avatar><q-icon name="event" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label caption>Fecha</q-item-label>
-                    <q-item-label>{{ formatDate(current?.date || current?.meeting_date) }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section avatar><q-icon name="schedule" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label caption>Hora</q-item-label>
-                    <q-item-label>{{ formatTime(current?.date || current?.meeting_date) }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
+              <div class="text-subtitle2 text-primary q-mb-sm">Información General</div>
+              <div class="info-item"><strong>Proyecto:</strong> {{ selectedReunion.id_project?.project_name || 'Sin proyecto' }}</div>
+              <div class="info-item"><strong>Semillero:</strong> {{ selectedReunion.id_seedbed?.name || 'N/A' }}</div>
+              <div class="info-item"><strong>Fecha:</strong> {{ formatDate(selectedReunion.date || selectedReunion.meeting_date) }}</div>
+              <div class="info-item"><strong>Hora:</strong> {{ formatTime(selectedReunion.date || selectedReunion.meeting_date) }}</div>
+              <div class="info-item"><strong>Duración:</strong> {{ selectedReunion.duration_minutes || '-' }} min</div>
             </div>
+
             <div class="col-12 col-md-6">
-              <q-list dense separator>
-                <q-item>
-                  <q-item-section avatar><q-icon name="place" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label caption>Lugar</q-item-label>
-                    <q-item-label>{{ current?.location || '-' }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
+              <div class="text-subtitle2 text-primary q-mb-sm">Detalles</div>
+              <div class="info-item"><strong>Lugar:</strong> {{ selectedReunion.location || '-' }}</div>
+              <div class="info-item"><strong>Modalidad:</strong> {{ mapModality(selectedReunion.modality) }}</div>
+              <div class="info-item" v-if="selectedReunion.meeting_url">
+                <strong>URL:</strong> <a :href="selectedReunion.meeting_url" target="_blank">{{ selectedReunion.meeting_url }}</a>
+              </div>
+              <div class="info-item">
+                <strong>Estado:</strong>
+                <q-badge :color="selectedReunion.status === 'Active' ? 'positive' : 'grey'">
+                  {{ selectedReunion.status === 'Active' ? 'Activo' : 'Inactivo' }}
+                </q-badge>
+              </div>
             </div>
-            <div class="col-12">
-              <div class="text-subtitle2 q-mb-xs">Descripción</div>
-              <q-banner dense class="bg-grey-1 text-grey-8">{{ current?.description || '—' }}</q-banner>
+
+            <div class="col-12" v-if="selectedReunion.description">
+              <div class="text-subtitle2 text-primary q-mb-sm">Descripción</div>
+              <div class="info-item">{{ selectedReunion.description }}</div>
+            </div>
+
+            <div class="col-12" v-if="selectedReunion.minutes">
+              <div class="text-subtitle2 text-primary q-mb-sm">Acta/Minuta</div>
+              <div class="info-item">{{ selectedReunion.minutes }}</div>
             </div>
           </div>
         </q-card-section>
-        <q-separator />
+
         <q-card-actions align="right">
           <q-btn flat label="Cerrar" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
 
-    <!-- Crear/Editar -->
-    <q-dialog v-model="showForm">
-      <q-card style="min-width: 720px; max-width: 900px">
-        <q-card-section class="detail-header">
-          <div class="text-h6">{{ isEdit ? 'Editar reunión' : 'Nueva reunión' }}</div>
-          <div class="text-caption">Completa los campos y guarda los cambios</div>
+    <!-- CREAR/EDITAR -->
+    <q-dialog v-model="showAddDialog">
+      <q-card style="min-width: 800px; max-width: 900px">
+        <q-card-section class="modal-header">
+          <div class="text-h6">
+            {{ isEditMode ? 'Editar Reunión' : 'Nueva Reunión' }}
+          </div>
+          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
-        <q-separator />
+
         <q-card-section>
-          <q-form @submit.prevent="onSubmit">
-            <div class="row q-col-gutter-md">
-              <div class="col-12 col-md-6">
-                <q-select v-model="form.id_project" :options="projectOptions" option-label="label" option-value="value"
-                  emit-value map-options label="Proyecto" outlined dense :rules="[v => !!v || 'Obligatorio']" clearable />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-select v-model="form.id_seedbed" :options="seedbedOptions" option-label="label" option-value="value"
-                  emit-value map-options label="Semillero (opcional)" outlined dense clearable />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.title" label="Asunto" outlined dense :rules="[v => !!v || 'Obligatorio']" />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.location" label="Lugar" outlined dense />
-              </div>
-              <div class="col-12">
-                <div class="text-subtitle2 q-mb-xs">Descripción</div>
-                <q-input v-model="form.description" type="textarea" label="Descripción" outlined dense autogrow />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.date" label="Fecha" outlined dense type="date" :rules="[v => !!v || 'Obligatorio']" />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.time" label="Hora" outlined dense type="time" />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-input v-model.number="form.duration_minutes" label="Duración (minutos)" outlined dense type="number" />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-select v-model="form.modality" :options="modalityOptions" label="Modalidad" outlined dense emit-value map-options clearable />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-input v-model="form.meeting_url" label="URL (si virtual)" outlined dense type="url" />
-              </div>
-              <div class="col-12">
-                <div class="text-subtitle2 q-mb-xs">Acta/Minuta (opcional)</div>
-                <q-input v-model="form.minutes" type="textarea" label="Acta" outlined dense autogrow />
-              </div>
+          <div class="row q-col-gutter-md">
+            <div class="col-12 col-md-6">
+              <q-input v-model="formData.title" filled label="Asunto" />
+              <q-select v-model="formData.id_project" :options="projectOptions" option-label="label" option-value="value"
+                emit-value map-options filled label="Proyecto" clearable class="q-mt-md" />
+              <q-select v-model="formData.id_seedbed" :options="seedbedOptions" option-label="label" option-value="value"
+                emit-value map-options filled label="Semillero (opcional)" clearable class="q-mt-md" />
+              <q-input v-model="formData.date" filled label="Fecha" type="date" class="q-mt-md" />
+              <q-input v-model="formData.time" filled label="Hora" type="time" class="q-mt-md" />
             </div>
-            <div class="row justify-end q-gutter-sm q-mt-md">
-              <q-btn flat label="Cancelar" v-close-popup />
-              <q-btn color="primary" :label="isEdit ? 'Actualizar' : 'Crear'" type="submit" unelevated />
+
+            <div class="col-12 col-md-6">
+              <q-input v-model="formData.location" filled label="Lugar" />
+              <q-select v-model="formData.modality" :options="modalityOptions" option-label="label" option-value="value"
+                emit-value map-options filled label="Modalidad" clearable class="q-mt-md" />
+              <q-input v-model="formData.meeting_url" filled label="URL (si virtual)" type="url" class="q-mt-md" />
+              <q-input v-model.number="formData.duration_minutes" filled label="Duración (minutos)" type="number" class="q-mt-md" />
             </div>
-          </q-form>
+
+            <div class="col-12">
+              <q-input v-model="formData.description" filled label="Descripción" type="textarea" rows="2" />
+            </div>
+
+            <div class="col-12">
+              <q-input v-model="formData.minutes" filled label="Acta/Minuta (opcional)" type="textarea" rows="2" class="q-mt-md" />
+            </div>
+          </div>
         </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" color="grey" @click="closeDialog" />
+          <q-btn :label="isEditMode ? 'Actualizar' : 'Registrar'" color="primary" @click="onSubmitReunion" />
+        </q-card-actions>
       </q-card>
     </q-dialog>
+
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { getData, postData, putData } from '../../services/apiClient'
+import { useNotifications } from '../../composables/useNotifications'
 import Table from '../../components/table.vue'
 import ActionButtons from '../../components/ActionButtons.vue'
-import { getData, postData, putData } from '../../services/apiClient'
 
-const rows = ref([])
-const filteredRows = ref([])
-const search = ref('')
+const { error, info } = useNotifications()
+
+const loading = ref(false)
+const reuniones = ref([])
+const busqueda = ref('')
 const filtroEstado = ref(null)
 const filtroProyecto = ref(null)
-const showForm = ref(false)
-const isEdit = ref(false)
-const showDetail = ref(false)
-const current = ref(null)
+const showAddDialog = ref(false)
+const showProfileDialog = ref(false)
+const isEditMode = ref(false)
+const selectedReunion = ref(null)
 
-const form = ref({
+const formData = ref({
   _id: null,
   title: '',
   description: '',
-  date: '', // YYYY-MM-DD
+  date: '',
   time: '',
   location: '',
   id_project: null,
@@ -205,6 +193,10 @@ const form = ref({
   meeting_url: '',
   minutes: ''
 })
+
+// Opciones
+const projectOptions = ref([])
+const seedbedOptions = ref([])
 
 const estadoOptions = [
   { label: 'Activo', value: 'Active' },
@@ -217,21 +209,34 @@ const modalityOptions = [
   { label: 'Híbrida', value: 'hybrid' }
 ]
 
-const projectOptions = ref([])
-const seedbedOptions = ref([])
+// === FILTRO AUTOMÁTICO ===
+const rowsMostrados = computed(() => {
+  let filtrados = [...reuniones.value]
 
-const columns = [
-  { name: 'nombre', label: 'Asunto', field: 'title' },
-  { name: 'proyecto_col', label: 'Proyecto', field: 'id_project', format: (v) => v?.project_name || '-' },
-  { name: 'fecha', label: 'Fecha', field: 'date', format: (v) => formatDate(v) },
-  { name: 'hora', label: 'Hora', field: 'date', format: (v) => formatTime(v) },
-  { name: 'lugar', label: 'Lugar', field: 'location' },
-  { name: 'proceso', label: 'Proceso', field: 'status', format: (v) => mapMeetingStatus(v) },
-  { name: 'opciones', label: 'Opciones', field: 'opciones' }
-]
+  // Filtro por estado
+  if (filtroEstado.value) {
+    filtrados = filtrados.filter(r => r.status === filtroEstado.value)
+  }
 
-const tableRows = computed(() => {
-  return (filteredRows.value || []).map(r => ({
+  // Filtro por proyecto
+  if (filtroProyecto.value) {
+    filtrados = filtrados.filter(r => {
+      const projectId = r.id_project?._id || r.id_project
+      return projectId === filtroProyecto.value
+    })
+  }
+
+  // Filtro por búsqueda de texto
+  const term = busqueda.value?.toLowerCase().trim()
+  if (term) {
+    filtrados = filtrados.filter(r => {
+      const title = (r.title || r.topic || '').toLowerCase()
+      const place = (r.location || '').toLowerCase()
+      return title.includes(term) || place.includes(term)
+    })
+  }
+
+  return filtrados.map(r => ({
     ...r,
     id: r._id,
     title: r.title || r.topic,
@@ -243,6 +248,17 @@ const tableRows = computed(() => {
   }))
 })
 
+// === COLUMNAS ===
+const columns = [
+  { name: 'nombre', label: 'Asunto', field: 'title', align: 'left' },
+  { name: 'proyecto_col', label: 'Proyecto', field: 'id_project', align: 'center', format: (v) => v?.project_name || '-' },
+  { name: 'fecha', label: 'Fecha', field: 'date', align: 'center', format: (v) => formatDate(v) },
+  { name: 'hora', label: 'Hora', field: 'date', align: 'center', format: (v) => formatTime(v) },
+  { name: 'lugar', label: 'Lugar', field: 'location', align: 'center' },
+  { name: 'opciones', label: 'Opciones', field: 'opciones', align: 'center' }
+]
+
+// === HELPERS ===
 function formatDate(d) {
   if (!d) return '-'
   const date = new Date(d)
@@ -258,67 +274,136 @@ function formatTime(d) {
   return `${hh}:${mm}`
 }
 
-function toISODate(yyyyMMdd) {
-  if (!yyyyMMdd) return undefined
-  const d = new Date(yyyyMMdd)
-  return isNaN(d.getTime()) ? undefined : d.toISOString()
+function combineDateTime(dateStr, timeStr) {
+  if (!dateStr) return undefined
+  const time = timeStr && timeStr.length > 0 ? timeStr : '00:00'
+  const iso = new Date(`${dateStr}T${time}:00`)
+  return isNaN(iso.getTime()) ? undefined : iso.toISOString()
 }
 
-async function loadMeetings() {
+function mapModality(m) {
+  const map = { in_person: 'Presencial', virtual: 'Virtual', hybrid: 'Híbrida' }
+  return map[m] || m || '-'
+}
+
+// === CRUD ===
+// Cargar reuniones
+const cargarReuniones = async () => {
   try {
-    const { msg } = await getData('/meetings/list')
-    rows.value = msg || []
-    applyFilter()
-  } catch (e) {
-    console.error(e)
+    loading.value = true
+    const res = await getData('/meetings/list')
+    reuniones.value = Array.isArray(res?.msg) ? res.msg : []
+  } catch (err) {
+    console.error('Error al cargar reuniones:', err)
+    error('No se pudieron cargar las reuniones')
+  } finally {
+    loading.value = false
   }
 }
 
-async function loadProjects() {
+// Cargar proyectos
+const cargarProyectos = async () => {
   try {
-    const { msg } = await getData('/projects/list')
-    projectOptions.value = (msg || []).map(p => ({ label: p.project_name, value: p._id, raw: p }))
-  } catch (e) { console.error(e) }
+    const res = await getData('/projects/list')
+    projectOptions.value = (res?.msg || []).map(p => ({
+      label: p.project_name,
+      value: p._id
+    }))
+  } catch (err) {
+    console.error('Error al cargar proyectos:', err)
+  }
 }
 
-async function loadSeedbeds() {
+// Cargar semilleros
+const cargarSemilleros = async () => {
   try {
-    const { msg } = await getData('/seedbeds/list')
-    seedbedOptions.value = (msg || []).map(s => ({ label: s.name, value: s._id, raw: s }))
-  } catch (e) { console.error(e) }
+    const res = await getData('/seedbeds/list')
+    seedbedOptions.value = (res?.msg || []).map(s => ({
+      label: s.name,
+      value: s._id
+    }))
+  } catch (err) {
+    console.error('Error al cargar semilleros:', err)
+  }
 }
 
-function applyFilter() {
-  const term = (search.value || '').toLowerCase()
-  filteredRows.value = (rows.value || []).filter(m => {
-    const title = (m.title || m.topic || '').toLowerCase()
-    const place = (m.location || '').toLowerCase()
-    const byText = term ? (title.includes(term) || place.includes(term)) : true
-    const byEstado = filtroEstado.value ? m.status === filtroEstado.value : true
-    const byProyecto = filtroProyecto.value ? ((m.id_project?._id || m.id_project) === filtroProyecto.value) : true
-    return byText && byEstado && byProyecto
-  })
+// Registrar reunión
+const registrarReunion = async () => {
+  try {
+    const payload = {
+      id_project: formData.value.id_project,
+      id_seedbed: formData.value.id_seedbed || undefined,
+      title: formData.value.title,
+      description: formData.value.description || undefined,
+      meeting_date: combineDateTime(formData.value.date, formData.value.time),
+      duration_minutes: formData.value.duration_minutes || undefined,
+      location: formData.value.location || undefined,
+      modality: formData.value.modality || undefined,
+      meeting_url: formData.value.meeting_url || undefined,
+      minutes: formData.value.minutes || undefined
+    }
+    await postData('/meetings/create', payload)
+    await cargarReuniones()
+    info('Reunión registrada correctamente')
+    closeDialog()
+  } catch (err) {
+    console.error('Error al registrar reunión:', err)
+    error('No se pudo registrar la reunión')
+  }
 }
 
-function openCreate() {
-  form.value = { _id: null, title: '', description: '', date: '', time: '', location: '' }
-  form.value.id_project = null
-  form.value.id_seedbed = null
-  form.value.duration_minutes = null
-  form.value.modality = ''
-  form.value.meeting_url = ''
-  form.value.minutes = ''
-  isEdit.value = false
-  showForm.value = true
+// Actualizar reunión
+const actualizarReunion = async () => {
+  try {
+    const payload = {
+      id_project: formData.value.id_project,
+      id_seedbed: formData.value.id_seedbed || undefined,
+      title: formData.value.title,
+      description: formData.value.description || undefined,
+      meeting_date: combineDateTime(formData.value.date, formData.value.time),
+      duration_minutes: formData.value.duration_minutes || undefined,
+      location: formData.value.location || undefined,
+      modality: formData.value.modality || undefined,
+      meeting_url: formData.value.meeting_url || undefined,
+      minutes: formData.value.minutes || undefined
+    }
+    await putData(`/meetings/update/${formData.value._id}`, payload)
+    await cargarReuniones()
+    info('Reunión actualizada correctamente')
+    closeDialog()
+  } catch (err) {
+    console.error('Error al actualizar reunión:', err)
+    error('No se pudo actualizar la reunión')
+  }
 }
 
-function openEdit(row) {
-  isEdit.value = true
-  form.value = {
+// === ACCIONES ===
+const openCreate = () => {
+  formData.value = {
+    _id: null,
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    location: '',
+    id_project: null,
+    id_seedbed: null,
+    duration_minutes: null,
+    modality: '',
+    meeting_url: '',
+    minutes: ''
+  }
+  isEditMode.value = false
+  showAddDialog.value = true
+}
+
+const openEdit = (row) => {
+  isEditMode.value = true
+  formData.value = {
     _id: row._id,
     title: row.title || row.topic || '',
     description: row.description || '',
-    date: row.date ? new Date(row.date).toISOString().slice(0,10) : (row.meeting_date ? new Date(row.meeting_date).toISOString().slice(0,10) : ''),
+    date: row.date ? new Date(row.date).toISOString().slice(0, 10) : (row.meeting_date ? new Date(row.meeting_date).toISOString().slice(0, 10) : ''),
     time: row.time || row.meeting_time || formatTime(row.date || row.meeting_date) || '',
     location: row.location || '',
     id_project: row.id_project?._id || row.id_project || null,
@@ -328,81 +413,63 @@ function openEdit(row) {
     meeting_url: row.meeting_url || '',
     minutes: row.minutes || ''
   }
-  showForm.value = true
+  showAddDialog.value = true
 }
 
-function openDetail(row) {
-  current.value = row
-  showDetail.value = true
+const openDetail = (row) => {
+  selectedReunion.value = row
+  showProfileDialog.value = true
 }
 
-async function onSubmit() {
-  try {
-    const payload = {
-      id_project: form.value.id_project,
-      id_seedbed: form.value.id_seedbed || undefined,
-      title: form.value.title,
-      description: form.value.description || undefined,
-      meeting_date: combineDateTime(form.value.date, form.value.time),
-      duration_minutes: form.value.duration_minutes || undefined,
-      location: form.value.location || undefined,
-      modality: form.value.modality || undefined,
-      meeting_url: form.value.meeting_url || undefined,
-      minutes: form.value.minutes || undefined
-    }
-    if (isEdit.value && form.value._id) {
-      await putData(`/meetings/update/${form.value._id}`, payload)
-    } else {
-      await postData('/meetings/create', payload)
-    }
-    showForm.value = false
-    await loadMeetings()
-  } catch (e) {
-    console.error(e)
+const closeDialog = () => {
+  showAddDialog.value = false
+  isEditMode.value = false
+  formData.value = {
+    _id: null,
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    location: '',
+    id_project: null,
+    id_seedbed: null,
+    duration_minutes: null,
+    modality: '',
+    meeting_url: '',
+    minutes: ''
   }
 }
 
-async function handleToggleStatus(row) {
-  try {
-    const isInactive = row.status === 'Inactive'
-    const endpoint = isInactive ? 'activate' : 'inactivate'
-    await putData(`/meetings/${endpoint}/${row._id}`)
-    await loadMeetings()
-  } catch (e) {
-    console.error(e)
-  }
-}
+const onSubmitReunion = () =>
+  isEditMode.value ? actualizarReunion() : registrarReunion()
 
-onMounted(() => {
-  loadMeetings()
-  loadProjects()
-  loadSeedbeds()
+onMounted(async () => {
+  await Promise.all([cargarProyectos(), cargarSemilleros()])
+  await cargarReuniones()
 })
-
-function combineDateTime(dateStr, timeStr) {
-  if (!dateStr) return undefined
-  const time = timeStr && timeStr.length > 0 ? timeStr : '00:00'
-  const iso = new Date(`${dateStr}T${time}:00`)
-  return isNaN(iso.getTime()) ? undefined : iso.toISOString()
-}
-
-function mapMeetingStatus(s) {
-  const m = { scheduled: 'Programada', cancelled: 'Cancelada', finished: 'Finalizada' }
-  return m[s] || s
-}
 </script>
 
 <style scoped>
-.q-card {
-  border-radius: 12px;
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #71277A;
 }
 
-.detail-header {
-  background: linear-gradient(135deg, #71277A 0%, #5b1f62 100%);
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #71277A;
   color: white;
 }
-/* Ocultar botón Activar/Desactivar en la columna Opciones sin tocar tableLider.vue */
-:deep(.projects-table .table-body-row .table-body-cell .row.q-gutter-xs .q-btn:nth-child(2)) {
-  display: none !important;
+
+.text-primary {
+  color: #71277A !important;
+}
+
+.info-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
 }
 </style>
