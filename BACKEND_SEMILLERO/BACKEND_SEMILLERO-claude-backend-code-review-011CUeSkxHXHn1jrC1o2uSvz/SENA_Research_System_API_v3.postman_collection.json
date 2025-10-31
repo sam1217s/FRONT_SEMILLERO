@@ -1,0 +1,530 @@
+{
+	"info": {
+		"_postman_id": "updated-2025-v3-auto",
+		"name": "SENA Research System API - v3 (Auto Tokens)",
+		"description": "Colección con tokens automáticos por rol en cada request.\n\n## ⚙️ IMPORTANTE: Importar Environment\n**Archivo requerido:** `SENA_Research_API.postman_environment.json`\n\n1. En Postman: Environments → Import\n2. Seleccionar archivo: `SENA_Research_API.postman_environment.json`\n3. Activar el environment importado\n4. Ejecutar los logins para llenar las variables de token\n\n## 🔑 Sistema de Tokens Automáticos\nCada carpeta de endpoints está organizada por ROL, y cada request usa automáticamente el token correspondiente:\n\n- 📁 **Como SUPER** → usa `{{tokensuper}}` automáticamente\n- 📁 **Como ADMIN** → usa `{{tokenadmin}}` automáticamente\n- 📁 **Como LIDER** → usa `{{tokenlider}}` automáticamente\n- 📁 **Como INVESTIGADOR** → usa `{{tokeninvestigador}}` automáticamente\n\n## 📋 Variables de Environment\nEl archivo de environment incluye:\n- `base_url` - URL del servidor (default: http://localhost:5000)\n- `tokensuper` - Token del usuario SUPER (auto-llenado por login)\n- `tokenadmin` - Token del usuario ADMIN (auto-llenado por login)\n- `tokenlider` - Token del usuario LIDER (auto-llenado por login)\n- `tokeninvestigador` - Token del usuario INVESTIGADOR (auto-llenado por login)\n- `token` - Token genérico (auto-llenado por último login)\n- `current_role` - Rol activo actual (auto-llenado por login)\n\n## 🚀 Flujo de Trabajo\n1. Importar environment: `SENA_Research_API.postman_environment.json`\n2. Activar el environment en Postman\n3. Ejecutar los 4 logins en la carpeta 🔐 Autenticación\n4. Navega a la carpeta del rol que quieres probar\n5. Ejecuta los requests - el token correcto se usa automáticamente\n\n## 👥 Credenciales\nTodos usan password: `password123`\n- SUPER: 99999999\n- ADMIN: 11111111\n- LIDER: 33333333\n- INVESTIGADOR: 44444444",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🔐 Autenticación",
+			"item": [
+				{
+					"name": "Login SUPER",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('tokensuper', jsonData.token);",
+									"    pm.environment.set('token', jsonData.token);",
+									"    pm.environment.set('current_role', 'SUPER');",
+									"    console.log('✅ Token SUPER guardado → tokensuper');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"document_number\": \"99999999\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login ADMIN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('tokenadmin', jsonData.token);",
+									"    pm.environment.set('token', jsonData.token);",
+									"    pm.environment.set('current_role', 'ADMIN');",
+									"    console.log('✅ Token ADMIN guardado → tokenadmin');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"document_number\": \"11111111\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login LIDER",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('tokenlider', jsonData.token);",
+									"    pm.environment.set('token', jsonData.token);",
+									"    pm.environment.set('current_role', 'LIDER');",
+									"    console.log('✅ Token LIDER guardado → tokenlider');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"document_number\": \"33333333\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login INVESTIGADOR",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('tokeninvestigador', jsonData.token);",
+									"    pm.environment.set('token', jsonData.token);",
+									"    pm.environment.set('current_role', 'INVESTIGADOR');",
+									"    console.log('✅ Token INVESTIGADOR guardado → tokeninvestigador');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"document_number\": \"44444444\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "👥 Investigadores - Como SUPER",
+			"item": [
+				{
+					"name": "Listar Investigadores",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "x-token", "value": "{{tokensuper}}", "type": "text"}],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/list?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "list"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						},
+						"description": "🔑 Usa: {{tokensuper}}"
+					}
+				},
+				{
+					"name": "Crear Investigador",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "x-token", "value": "{{tokensuper}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"document_number\": \"87654321\",\n  \"document_type\": \"CC\",\n  \"name\": \"Nuevo Investigador\",\n  \"email\": \"nuevo@sena.edu.co\",\n  \"phone\": \"3001234567\",\n  \"password\": \"password123\",\n  \"academic_formation\": \"Ingeniero\",\n  \"knowledge_area\": \"Tecnología\",\n  \"contract_type\": \"Contrato\",\n  \"contract_number\": \"CNT-2025-999\",\n  \"contract_start_date\": \"2025-01-01\",\n  \"entry_date\": \"2025-01-01\",\n  \"roles\": [{\"role\": \"INVESTIGADOR\", \"start_date\": \"2025-01-01\"}]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "create"]
+						},
+						"description": "🔑 Usa: {{tokensuper}}"
+					}
+				},
+				{
+					"name": "Agregar Rol",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "x-token", "value": "{{tokensuper}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"LIDER\",\n  \"start_date\": \"2025-02-01\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/add-role/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "add-role", ":id"],
+							"variable": [{"key": "id", "value": ""}]
+						},
+						"description": "🔑 Usa: {{tokensuper}}"
+					}
+				},
+				{
+					"name": "Eliminar Investigador",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "x-token", "value": "{{tokensuper}}"}],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/delete/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "delete", ":id"],
+							"variable": [{"key": "id", "value": ""}]
+						},
+						"description": "🔑 Usa: {{tokensuper}}"
+					}
+				}
+			],
+			"description": "Endpoints usando token de SUPER automáticamente"
+		},
+		{
+			"name": "👥 Investigadores - Como ADMIN",
+			"item": [
+				{
+					"name": "Listar Investigadores",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "x-token", "value": "{{tokenadmin}}", "type": "text"}],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/list?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "list"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						},
+						"description": "🔑 Usa: {{tokenadmin}}"
+					}
+				},
+				{
+					"name": "Crear Investigador",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "x-token", "value": "{{tokenadmin}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"document_number\": \"87654321\",\n  \"document_type\": \"CC\",\n  \"name\": \"Nuevo Investigador\",\n  \"email\": \"nuevo@sena.edu.co\",\n  \"phone\": \"3001234567\",\n  \"password\": \"password123\",\n  \"academic_formation\": \"Ingeniero\",\n  \"knowledge_area\": \"Tecnología\",\n  \"contract_type\": \"Contrato\",\n  \"contract_number\": \"CNT-2025-999\",\n  \"contract_start_date\": \"2025-01-01\",\n  \"entry_date\": \"2025-01-01\",\n  \"roles\": [{\"role\": \"INVESTIGADOR\", \"start_date\": \"2025-01-01\"}]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "create"]
+						},
+						"description": "🔑 Usa: {{tokenadmin}}"
+					}
+				},
+				{
+					"name": "Inactivar Investigador",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "x-token", "value": "{{tokenadmin}}"}],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/inactivate/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "inactivate", ":id"],
+							"variable": [{"key": "id", "value": ""}]
+						},
+						"description": "🔑 Usa: {{tokenadmin}}"
+					}
+				}
+			],
+			"description": "Endpoints usando token de ADMIN automáticamente"
+		},
+		{
+			"name": "👥 Investigadores - Como LIDER",
+			"item": [
+				{
+					"name": "Listar Investigadores",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "x-token", "value": "{{tokenlider}}", "type": "text"}],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/list?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "list"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						},
+						"description": "🔑 Usa: {{tokenlider}}"
+					}
+				},
+				{
+					"name": "Ver Investigador",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "x-token", "value": "{{tokenlider}}"}],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", ":id"],
+							"variable": [{"key": "id", "value": ""}]
+						},
+						"description": "🔑 Usa: {{tokenlider}}"
+					}
+				}
+			],
+			"description": "Endpoints usando token de LIDER automáticamente"
+		},
+		{
+			"name": "👥 Investigadores - Como INVESTIGADOR",
+			"item": [
+				{
+					"name": "Listar Investigadores",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "x-token", "value": "{{tokeninvestigador}}", "type": "text"}],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/list?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", "list"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						},
+						"description": "🔑 Usa: {{tokeninvestigador}}"
+					}
+				},
+				{
+					"name": "Ver Mi Perfil",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "x-token", "value": "{{tokeninvestigador}}"}],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", ":id"],
+							"variable": [{"key": "id", "value": "", "description": "ID del investigador actual"}]
+						},
+						"description": "🔑 Usa: {{tokeninvestigador}}"
+					}
+				}
+			],
+			"description": "Endpoints usando token de INVESTIGADOR automáticamente"
+		},
+		{
+			"name": "📁 Proyectos - Como ADMIN",
+			"item": [
+				{
+					"name": "Listar Proyectos",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "x-token", "value": "{{tokenadmin}}"}],
+						"url": {
+							"raw": "{{base_url}}/api/projects/list?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "projects", "list"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						},
+						"description": "🔑 Usa: {{tokenadmin}}"
+					}
+				},
+				{
+					"name": "Crear Proyecto",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "x-token", "value": "{{tokenadmin}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"PRY-2025-001\",\n  \"project_name\": \"Proyecto de Prueba\",\n  \"description\": \"Descripción del proyecto\",\n  \"objectives\": \"Objetivos del proyecto\",\n  \"start_date\": \"2025-01-01\",\n  \"end_date\": \"2025-12-31\",\n  \"validity\": 0\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/projects/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "projects", "create"]
+						},
+						"description": "🔑 Usa: {{tokenadmin}}"
+					}
+				},
+				{
+					"name": "Eliminar Proyecto",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "x-token", "value": "{{tokenadmin}}"}],
+						"url": {
+							"raw": "{{base_url}}/api/projects/delete/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "projects", "delete", ":id"],
+							"variable": [{"key": "id", "value": ""}]
+						},
+						"description": "🔑 Usa: {{tokenadmin}}"
+					}
+				}
+			],
+			"description": "Proyectos con token ADMIN"
+		},
+		{
+			"name": "📁 Proyectos - Como LIDER",
+			"item": [
+				{
+					"name": "Listar Proyectos",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "x-token", "value": "{{tokenlider}}"}],
+						"url": {
+							"raw": "{{base_url}}/api/projects/list?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "projects", "list"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						},
+						"description": "🔑 Usa: {{tokenlider}}"
+					}
+				},
+				{
+					"name": "Crear Proyecto",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "x-token", "value": "{{tokenlider}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"PRY-2025-001\",\n  \"project_name\": \"Proyecto de Prueba\",\n  \"description\": \"Descripción del proyecto\",\n  \"objectives\": \"Objetivos del proyecto\",\n  \"start_date\": \"2025-01-01\",\n  \"end_date\": \"2025-12-31\",\n  \"validity\": 0\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/projects/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "projects", "create"]
+						},
+						"description": "🔑 Usa: {{tokenlider}}"
+					}
+				},
+				{
+					"name": "Actualizar Proyecto",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "x-token", "value": "{{tokenlider}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"project_name\": \"Proyecto Actualizado\",\n  \"end_date\": \"2026-06-30\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/projects/update/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "projects", "update", ":id"],
+							"variable": [{"key": "id", "value": ""}]
+						},
+						"description": "🔑 Usa: {{tokenlider}}"
+					}
+				}
+			],
+			"description": "Proyectos con token LIDER"
+		},
+		{
+			"name": "🏢 Centros - Como SUPER",
+			"item": [
+				{
+					"name": "Listar Centros",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "x-token", "value": "{{tokensuper}}"}],
+						"url": {
+							"raw": "{{base_url}}/api/training-centers/list",
+							"host": ["{{base_url}}"],
+							"path": ["api", "training-centers", "list"]
+						},
+						"description": "🔑 Usa: {{tokensuper}}"
+					}
+				},
+				{
+					"name": "Crear Centro",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "x-token", "value": "{{tokensuper}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Centro de Prueba\",\n  \"code\": \"CP-2025\",\n  \"address\": \"Calle 123\",\n  \"city\": \"Bogotá\",\n  \"department\": \"Cundinamarca\",\n  \"phone\": \"6012345678\",\n  \"email\": \"centro@sena.edu.co\",\n  \"student_capacity\": 1000,\n  \"status\": 0\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/training-centers/create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "training-centers", "create"]
+						},
+						"description": "🔑 Usa: {{tokensuper}}"
+					}
+				}
+			],
+			"description": "Centros con token SUPER"
+		},
+		{
+			"name": "📊 Sistema",
+			"item": [
+				{
+					"name": "API Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api",
+							"host": ["{{base_url}}"],
+							"path": ["api"]
+						},
+						"description": "No requiere autenticación"
+					}
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,837 @@
+{
+	"info": {
+		"_postman_id": "updated-2025-v3",
+		"name": "SENA Research System API - v3 (Tokens por Rol)",
+		"description": "Colecci\u00f3n actualizada con tokens espec\u00edficos por rol, seguridad mejorada, paginaci\u00f3n y rate limiting.\n\n## \u2699\ufe0f IMPORTANTE: Importar Environment\n**Archivo requerido:** `SENA_Research_API.postman_environment.json`\n\n1. En Postman: Environments \u2192 Import\n2. Seleccionar archivo: `SENA_Research_API.postman_environment.json`\n3. Activar el environment importado\n4. Ejecutar los logins para llenar las variables de token\n\n## \ud83d\udd11 Variables de Token\nCada login guarda el token en dos variables:\n- **Variable espec\u00edfica del rol**: `tokensuper`, `tokenadmin`, `tokenlider`, `tokeninvestigador`\n- **Variable gen\u00e9rica**: `token` (sobrescrita en cada login)\n\n## \ud83d\udccb Variables de Environment\nEl archivo de environment incluye:\n- `base_url` - URL del servidor (default: http://localhost:5000)\n- `tokensuper` - Token del usuario SUPER (auto-llenado por login)\n- `tokenadmin` - Token del usuario ADMIN (auto-llenado por login)\n- `tokenlider` - Token del usuario LIDER (auto-llenado por login)\n- `tokeninvestigador` - Token del usuario INVESTIGADOR (auto-llenado por login)\n- `token` - Token gen\u00e9rico (auto-llenado por \u00faltimo login)\n- `current_role` - Rol activo actual (auto-llenado por login)\n\n## \ud83d\udc65 Credenciales de Prueba\nTodos los usuarios usan password: `password123`\n\n- SUPER: 99999999 \u2192 guarda en `{{tokensuper}}`\n- ADMIN: 11111111 \u2192 guarda en `{{tokenadmin}}`\n- LIDER: 33333333 \u2192 guarda en `{{tokenlider}}`\n- INVESTIGADOR: 44444444 \u2192 guarda en `{{tokeninvestigador}}`\n\n## \ud83d\ude80 Uso\n1. Importar y activar environment\n2. Ejecuta los logins necesarios\n3. Los endpoints protegidos usan `{{token}}` por defecto\n4. Puedes cambiar manualmente el header x-token a cualquier token espec\u00edfico (ej: `{{tokensuper}}`)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "\ud83d\udd10 Autenticaci\u00f3n",
+			"item": [
+				{
+					"name": "Login Super Administrador",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('tokensuper', jsonData.token);",
+									"    pm.environment.set('token', jsonData.token);",
+									"    pm.environment.set('current_role', 'SUPER');",
+									"    console.log('\u2705 Token SUPER guardado en variables: tokensuper y token');",
+									"    console.log('Token:', jsonData.token);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"document_number\": \"99999999\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"researchers",
+								"login"
+							]
+						},
+						"description": "Login como SUPER - Control total del sistema\n\n\u2705 Token guardado en: {{tokensuper}} y {{token}}\n\u26a0\ufe0f Rate Limit: 5 intentos por 15 minutos\n\n**Credenciales:**\n- Document: 99999999\n- Password: password123"
+					}
+				},
+				{
+					"name": "Login Administrador",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('tokenadmin', jsonData.token);",
+									"    pm.environment.set('token', jsonData.token);",
+									"    pm.environment.set('current_role', 'ADMIN');",
+									"    console.log('\u2705 Token ADMIN guardado en variables: tokenadmin y token');",
+									"    console.log('Token:', jsonData.token);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"document_number\": \"11111111\",\n  \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"researchers",
+								"login"
+							]
+						},
+						"description": "Login como ADMIN - Gesti\u00f3n completa\n\n\u2705 Token guardado en: {{tokenadmin}} y {{token}}\n\u26a0\ufe0f Rate Limit: 5 intentos por 15 minutos\n\n**Credenciales:**\n- Document: 11111111\n- Password: password123"
+					}
+				},
+				{
+					"name": "Login L\u00edder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('tokenlider', jsonData.token);",
+									"    pm.environment.set('token', jsonData.token);",
+									"    pm.environment.set('current_role', 'LIDER');",
+									"    console.log('\u2705 Token LIDER guardado en variables: tokenlider y token');",
+									"    console.log('Token:', jsonData.token);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"document_number\": \"33333333\",\n  \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"researchers",
+								"login"
+							]
+						},
+						"description": "Login como LIDER - Gesti\u00f3n de proyectos y semilleros\n\n\u2705 Token guardado en: {{tokenlider}} y {{token}}\n\u26a0\ufe0f Rate Limit: 5 intentos por 15 minutos\n\n**Credenciales:**\n- Document: 33333333\n- Password: password123"
+					}
+				},
+				{
+					"name": "Login Investigador",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('tokeninvestigador', jsonData.token);",
+									"    pm.environment.set('token', jsonData.token);",
+									"    pm.environment.set('current_role', 'INVESTIGADOR');",
+									"    console.log('\u2705 Token INVESTIGADOR guardado en variables: tokeninvestigador y token');",
+									"    console.log('Token:', jsonData.token);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"document_number\": \"44444444\",\n  \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"researchers",
+								"login"
+							]
+						},
+						"description": "Login como INVESTIGADOR - Acceso b\u00e1sico\n\n\u2705 Token guardado en: {{tokeninvestigador}} y {{token}}\n\u26a0\ufe0f Rate Limit: 5 intentos por 15 minutos\n\n**Credenciales:**\n- Document: 44444444\n- Password: password123"
+					}
+				}
+			],
+			"description": "Endpoints de autenticaci\u00f3n con rate limiting (5 intentos/15min)"
+		},
+		{
+			"name": "\ud83d\udc65 Investigadores",
+			"item": [
+				{
+					"name": "Listar Investigadores (Paginado)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/list?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"researchers",
+								"list"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "N\u00famero de p\u00e1gina (default: 1)"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Registros por p\u00e1gina (default: 10, max: 100)"
+								},
+								{
+									"key": "name",
+									"value": "",
+									"description": "Filtrar por nombre",
+									"disabled": true
+								},
+								{
+									"key": "document_number",
+									"value": "",
+									"description": "Filtrar por documento",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "0",
+									"description": "0=Activo, 1=Inactivo",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Lista investigadores con paginaci\u00f3n\n\nRoles: SUPER, ADMIN, LIDER, INVESTIGADOR\n\n**Respuesta:**\n```json\n{\n  \"data\": [...],\n  \"pagination\": {\n    \"total\": 150,\n    \"page\": 1,\n    \"limit\": 10,\n    \"totalPages\": 15,\n    \"hasNextPage\": true,\n    \"hasPrevPage\": false\n  }\n}\n```"
+					}
+				},
+				{
+					"name": "Obtener Investigador por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"researchers",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "",
+									"description": "ID del investigador (MongoDB ObjectId)"
+								}
+							]
+						},
+						"description": "Roles: SUPER, ADMIN, LIDER, INVESTIGADOR"
+					}
+				},
+				{
+					"name": "Crear Investigador",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"document_number\": \"12345678\",\n  \"document_type\": \"CC\",\n  \"name\": \"Juan P\u00e9rez Garc\u00eda\",\n  \"email\": \"juan.perez@sena.edu.co\",\n  \"phone\": \"3001234567\",\n  \"password\": \"password123\",\n  \"academic_formation\": \"Ingeniero de Sistemas\",\n  \"knowledge_area\": \"Tecnolog\u00eda\",\n  \"contract_type\": \"Contrato\",\n  \"contract_number\": \"CNT-2025-001\",\n  \"contract_start_date\": \"2025-01-01\",\n  \"contract_end_date\": \"2025-12-31\",\n  \"entry_date\": \"2025-01-01\",\n  \"roles\": [\n    {\n      \"role\": \"INVESTIGADOR\",\n      \"start_date\": \"2025-01-01\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"researchers",
+								"create"
+							]
+						},
+						"description": "Roles permitidos: SUPER, ADMIN\n\n**Contrase\u00f1a:** M\u00ednimo 6 caracteres (recomendado 12+)\n**Status:** 0 (Activo) por defecto\n**Roles v\u00e1lidos:** SUPER, ADMIN, LIDER, INVESTIGADOR"
+					}
+				},
+				{
+					"name": "Actualizar Investigador",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Juan P\u00e9rez Garc\u00eda Actualizado\",\n  \"phone\": \"3009876543\",\n  \"academic_formation\": \"Mag\u00edster en Ingenier\u00eda\",\n  \"contract_end_date\": \"2026-12-31\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/update/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"researchers",
+								"update",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						},
+						"description": "Roles: SUPER, ADMIN (propio), INVESTIGADOR (solo su perfil)\n\n\u26a0\ufe0f **Solo SUPER y ADMIN pueden actualizar el campo 'status'**"
+					}
+				},
+				{
+					"name": "Agregar Rol a Investigador",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"LIDER\",\n  \"start_date\": \"2025-02-01\",\n  \"end_date\": \"2025-12-31\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/add-role/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"researchers",
+								"add-role",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						},
+						"description": "Roles permitidos: SUPER, ADMIN\n\nRoles disponibles: SUPER, ADMIN, LIDER, INVESTIGADOR"
+					}
+				},
+				{
+					"name": "Activar Investigador",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/activate/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"researchers",
+								"activate",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						},
+						"description": "Cambia status a 0 (Activo)\n\nRoles: SUPER, ADMIN"
+					}
+				},
+				{
+					"name": "Inactivar Investigador",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/inactivate/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"researchers",
+								"inactivate",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						},
+						"description": "Cambia status a 1 (Inactivo)\n\nRoles: SUPER, ADMIN"
+					}
+				},
+				{
+					"name": "Eliminar Investigador",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/delete/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"researchers",
+								"delete",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						},
+						"description": "\u26a0\ufe0f **HARD DELETE** - Elimina permanentemente\n\nRoles: SUPER, ADMIN"
+					}
+				}
+			],
+			"description": "Gesti\u00f3n de investigadores con paginaci\u00f3n y filtros"
+		},
+		{
+			"name": "\ud83d\udcc1 Proyectos",
+			"item": [
+				{
+					"name": "Listar Proyectos (Paginado)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/projects/list?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"list"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "code",
+									"value": "",
+									"description": "Filtrar por c\u00f3digo",
+									"disabled": true
+								},
+								{
+									"key": "project_name",
+									"value": "",
+									"description": "Filtrar por nombre",
+									"disabled": true
+								},
+								{
+									"key": "validity",
+									"value": "",
+									"description": "0=Activo, 1=Inactivo",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Lista proyectos con paginaci\u00f3n y populate de seedbed, group, leader\n\nRoles: SUPER, ADMIN, LIDER, INVESTIGADOR"
+					}
+				},
+				{
+					"name": "Obtener Proyecto por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/projects/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Crear Proyecto",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"PRY-2025-001\",\n  \"project_name\": \"Sistema de Gesti\u00f3n de Inventarios\",\n  \"description\": \"Desarrollo de sistema web para gesti\u00f3n de inventarios\",\n  \"objectives\": \"Automatizar el control de inventarios del centro\",\n  \"id_seedbed\": \"SEEDBED_OBJECT_ID\",\n  \"id_group\": \"GROUP_OBJECT_ID\",\n  \"id_leader\": \"RESEARCHER_OBJECT_ID\",\n  \"start_date\": \"2025-02-01\",\n  \"end_date\": \"2025-12-31\",\n  \"validity\": 0,\n  \"budget\": 5000000,\n  \"observations\": \"Proyecto prioritario\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/projects/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"create"
+							]
+						},
+						"description": "Roles: ADMIN, LIDER\n\n**Validity:** 0=Vigente, 1=No vigente"
+					}
+				},
+				{
+					"name": "Actualizar Proyecto",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"project_name\": \"Sistema de Gesti\u00f3n de Inventarios v2\",\n  \"end_date\": \"2026-06-30\",\n  \"budget\": 7000000\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/projects/update/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"update",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						},
+						"description": "Roles: ADMIN, LIDER"
+					}
+				},
+				{
+					"name": "Eliminar Proyecto",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/projects/delete/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"delete",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						},
+						"description": "\u26a0\ufe0f **HARD DELETE**\n\nRoles: ADMIN \u00fanicamente"
+					}
+				}
+			]
+		},
+		{
+			"name": "\ud83c\udfe2 Centros de Formaci\u00f3n",
+			"item": [
+				{
+					"name": "Listar Centros",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/training-centers/list",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"training-centers",
+								"list"
+							]
+						},
+						"description": "Roles: SUPER, ADMIN, LIDER, INVESTIGADOR"
+					}
+				},
+				{
+					"name": "Crear Centro",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-token",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Centro de Biotecnolog\u00eda Industrial\",\n  \"code\": \"CBI-2025\",\n  \"address\": \"Calle 52 #45-23\",\n  \"city\": \"Palmira\",\n  \"department\": \"Valle del Cauca\",\n  \"phone\": \"6028234567\",\n  \"email\": \"cbi@sena.edu.co\",\n  \"website\": \"https://cbi.sena.edu.co\",\n  \"student_capacity\": 1500,\n  \"description\": \"Centro especializado en biotecnolog\u00eda\",\n  \"directors\": [\n    {\n      \"name\": \"Mar\u00eda Gonz\u00e1lez\",\n      \"position\": \"Director\",\n      \"email\": \"maria.gonzalez@sena.edu.co\",\n      \"phone\": \"3201234567\",\n      \"status\": 0\n    }\n  ],\n  \"status\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/training-centers/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"training-centers",
+								"create"
+							]
+						},
+						"description": "Roles: SUPER\n\n**Status:** 0=Activo, 1=Inactivo\n**Director Status:** 0=Activo, 1=Inactivo"
+					}
+				}
+			]
+		},
+		{
+			"name": "\ud83d\udcca Informaci\u00f3n del Sistema",
+			"item": [
+				{
+					"name": "API Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api"
+							]
+						},
+						"description": "Informaci\u00f3n de la API - No requiere autenticaci\u00f3n"
+					}
+				},
+				{
+					"name": "Health Check (404 Test)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						},
+						"description": "Prueba del handler de rutas no encontradas"
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-add token to all requests",
+					"const token = pm.environment.get('token');",
+					"if (token) {",
+					"    pm.request.headers.add({",
+					"        key: 'x-token',",
+					"        value: token",
+					"    });",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Log rate limit headers",
+					"const rateLimit = pm.response.headers.get('RateLimit-Limit');",
+					"const rateLimitRemaining = pm.response.headers.get('RateLimit-Remaining');",
+					"if (rateLimit) {",
+					"    console.log(`Rate Limit: ${rateLimitRemaining}/${rateLimit}`);",
+					"}"
+				]
+			}
+		}
+	]
+}
