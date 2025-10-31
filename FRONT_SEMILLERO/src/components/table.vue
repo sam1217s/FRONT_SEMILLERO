@@ -5,37 +5,19 @@
       <div class="table-title">{{ title }}</div>
       <div class="table-actions">
         <slot name="filters"></slot>
-        <q-btn
-          v-if="showAddButton"
-          :label="addButtonLabel"
-          color="primary"
-          unelevated
-          padding="sm lg"
-          class="text-weight-bold"
-          @click="$emit('add-item')"
-        />
+        <q-btn v-if="showAddButton" :label="addButtonLabel" color="primary" unelevated padding="sm lg"
+          class="text-weight-bold" @click="$emit('add-item')" />
       </div>
     </div>
 
     <!-- Tabla -->
-    <q-table
-      :rows="rows"
-      :columns="columns"
-      row-key="id"
-      flat
-      :hide-pagination="true"
-      :rows-per-page-options="[0]"
-      class="projects-table"
-    >
+    <q-table :rows="rows" :columns="columns" row-key="id" flat :hide-pagination="true" :rows-per-page-options="[0]"
+      class="projects-table">
       <!-- Header personalizado -->
+      <!-- estilo de la tabla -->
       <template #header="props">
         <q-tr :props="props" class="table-header-row">
-          <q-th
-            v-for="col in props.cols"
-            :key="col.name"
-            :props="props"
-            class="table-header-cell"
-          >
+          <q-th v-for="col in props.cols" :key="col.name" :props="props" class="table-header-cell">
             {{ col.label }}
           </q-th>
         </q-tr>
@@ -44,19 +26,9 @@
       <!-- Cuerpo dinámico -->
       <template #body="props">
         <q-tr :props="props" class="table-body-row">
-          <q-td
-            v-for="col in props.cols"
-            :key="col.name"
-            :props="props"
-            :class="getCellClass(col.name)"
-          >
+          <q-td v-for="col in props.cols" :key="col.name" :props="props" :class="getCellClass(col.name)">
             <!-- Slot personalizado por columna -->
-            <slot
-              :name="`cell-${col.name}`"
-              :row="props.row"
-              :value="props.row[col.field]"
-              :col="col"
-            >
+            <slot :name="`cell-${col.name}`" :row="props.row" :value="props.row[col.field]" :col="col">
               <!-- Columna de opciones (slot obligatorio) -->
               <template v-if="col.name === 'options' || col.name === 'opciones'">
                 <slot name="options-column" :row="props.row">
@@ -67,6 +39,12 @@
               <!-- Columna normal con formato -->
               <template v-else>
                 {{ col.format ? col.format(props.row[col.field]) : props.row[col.field] }}
+              </template>
+              <template v-if="col.name=='status'">
+                
+                  <q-badge color="positive" style="color: white;" v-if="props.row.status==0">Activo </q-badge>
+                  <q-badge color="red" style="color: white;" v-else>Inactivo </q-badge>
+                
               </template>
             </slot>
           </q-td>

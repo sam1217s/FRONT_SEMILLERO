@@ -20,8 +20,7 @@
             <div class="row q-col-gutter-md q-mb-md">
               <div class="col-12 col-md-6">
                 <q-input v-model="busqueda" filled clearable label="Buscar administradores"
-                  placeholder="Buscar por nombre, correo o teléfono..." @update:model-value="aplicarFiltro"
-                  @clear="limpiarFiltros">
+                  placeholder="Buscar por nombre, correo o teléfono...">
                   <template #prepend><q-icon name="search" /></template>
                 </q-input>
               </div>
@@ -34,13 +33,20 @@
             </div>
 
             <!-- TABLA PRINCIPAL -->
-            <Table v-else :rows="rowsMostrados" :columns="columns" title="ADMINISTRADORES"
+            <Table v-else :rows="filtradatos" :columns="columns" title="ADMINISTRADORES"
               add-button-label="AGREGAR ADMINISTRADOR" @add-item="showAddDialog = true">
               <template #options-column="{ row }">
                 <ActionButtons :row="row" :show-view="true" :show-edit="true" :show-toggle-status="true"
                   view-tooltip="Ver perfil" edit-tooltip="Editar administrador" activate-tooltip="Activar"
                   deactivate-tooltip="Desactivar" @view="handleViewPerfil(row)" @edit="handleEditAdministrador(row)"
                   @toggle-status="handleToggleStatus(row)" />
+              </template>
+              <template v-slot:body-cell-status="props">
+                <q-td>
+                  <span style="color: green;" v-if="props.row.status==1">¨{{ props.row.status }} </span>
+                  <span style="color: red;" v-else>{{ props.row.status }} </span>
+                </q-td>
+
               </template>
             </Table>
           </q-card-section>
@@ -66,7 +72,7 @@
                   <div class="info-item"><strong>Rol:</strong> ADMIN</div>
                   <div class="info-item">
                     <strong>Estado:</strong>
-                    <q-badge :color="selectedAdministrador.status === 0 ? 'positive' : 'grey'"
+                    <q-badge :color="selectedAdministrador.status === 1 ? 'positive' : 'grey'"
                       :label="selectedAdministrador.status === 0 ? 'Activo' : 'Inactivo'" />
                   </div>
                 </div>
@@ -84,7 +90,6 @@
           </q-card>
         </q-dialog>
 
-        <!-- CREAR / EDITAR -->
         <!-- CREAR / EDITAR -->
         <q-dialog v-model="showAddDialog">
           <q-card style="min-width: 800px; max-width: 900px">
@@ -183,10 +188,12 @@ const tipoDocumentoOptions = [
 // === CRUD ===
 // Cargar administradores
 const cargarAdministradores = async () => {
+  loading.value = true
   try {
-    loading.value = true
     const res = await getData("/researchers/list-admins")
     administradores.value = Array.isArray(res?.data) ? res.data : []
+    console.log(administradores.value);
+    
   } catch (err) {
     console.error("Error al cargar administradores:", err)
     error("No se pudieron cargar los administradores")
@@ -196,6 +203,7 @@ const cargarAdministradores = async () => {
 }
 
 const registrarAdministrador = async () => {
+  loading.value = true
   try {
     await postData("/researchers/create", formData.value)
     await cargarAdministradores()
@@ -204,12 +212,15 @@ const registrarAdministrador = async () => {
   } catch (err) {
     console.error("Error al registrar administrador:", err.response?.data || err.message)
     error(err.response?.data?.msg || "No se pudo registrar el administrador")
+  } finally {
+    loading.value = false
   }
 }
 
 
 // Actualizar administrador
 const actualizarAdministrador = async () => {
+  loading.value = true
   try {
     await putData(`/researchers/update/${editingAdministrador.value._id}`, formData.value)
     await cargarAdministradores()
@@ -218,11 +229,14 @@ const actualizarAdministrador = async () => {
   } catch (err) {
     console.error("Error al actualizar administrador:", err)
     error("No se pudo actualizar el administrador")
+  } finally {
+    loading.value = false
   }
 }
 
 // Activar / Desactivar administrador
 const handleToggleStatus = async (admin) => {
+  loading.value = true
   try {
     const nuevoEstado = admin.status ? 0 : 1
     await putData(`/researchers/update/${admin._id}`, { ...admin, status: nuevoEstado })
@@ -230,24 +244,24 @@ const handleToggleStatus = async (admin) => {
     info(`Administrador ${nuevoEstado ? "desactivado" : "activado"} correctamente`)
   } catch {
     error("No se pudo cambiar el estado del administrador")
+  } finally {
+    loading.value = false
   }
 }
 
-
-
 // === FILTRO AUTOMÁTICO ===
-const rowsMostrados = computed(() => {
-  const term = busqueda.value?.toLowerCase().trim()
-  if (!term) return administradores.value
-
-  const campos = ["name", "email", "phone", "document_number"]
-
-  return administradores.value.filter(a =>
-    campos.some(campo => {
-      const valor = a[campo]?.toString().toLowerCase()
-      return valor?.includes(term)
-    })
+const filtradatos= computed(()=>{
+   if (!busqueda.value.toLowerCase()) {
+        return administradores.value;
+      }
+  return  administradores.value.filter(item =>{
+    return(
+    item.name.toLowerCase().includes(busqueda.value.toLowerCase())||
+    item.email.toLowerCase().includes(busqueda.value.toLowerCase())||
+    item.phone.toLowerCase().includes(busqueda.value.toLowerCase())||
+    item.document_number.toLowerCase().includes(busqueda.value.toLowerCase())
   )
+  })
 })
 
 // === ACCIONES ===
@@ -281,18 +295,18 @@ const onSubmitAdministrador = () =>
 // === COLUMNAS ===
 const columns = [
   { name: "name", label: "Nombre", field: "name", align: "left" },
-  { 
-    name: "id_training_center", 
-    label: "Centro de Formación", 
-    field: "id_training_center", 
+  {
+    name: "id_training_center",
+    label: "Centro de Formación",
+    field: "id_training_center",
     align: "center",
     format: val => val?.name || "Sin centro"
   },
   { name: "email", label: "Email", field: "email", align: "center" },
   { name: "phone", label: "Celular", field: "phone", align: "center" },
-  { name: "status", label: "Estado", field: "status", align: "center", format: val => val === 0 ? "Activo" : "Inactivo" },
+  { name: "status", label: "Estado"},
   { name: "options", label: "Opciones", field: "options", align: "center" },
-  
+
 ]
 
 onMounted(cargarAdministradores)

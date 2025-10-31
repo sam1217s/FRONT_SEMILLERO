@@ -3,15 +3,19 @@
     <div class="row q-col-gutter-md">
       <div class="col-12">
         <q-card class="shadow-1">
+
           <!-- HEADER -->
-          <q-card-section>
-            <div class="page-title">
-              <q-icon name="event_note" class="q-mr-sm" />
-              Mis Actividades
+          <q-card-section class="row items-center justify-between">
+            <div>
+              <div class="page-title">
+                <q-icon name="event_note" class="q-mr-sm" />
+                Mis Actividades
+              </div>
+              <div class="text-caption text-grey-7 q-mt-xs">
+                Gestiona tus actividades de investigación
+              </div>
             </div>
-            <div class="text-caption text-grey-7 q-mt-xs">
-              Gestiona tus actividades de investigación
-            </div>
+            <div class="row q-gutter-sm"></div>
           </q-card-section>
 
           <q-separator />
@@ -53,16 +57,25 @@
             <Table v-else :rows="rowsMostrados" :columns="tableColumns" title="ACTIVIDADES"
               add-button-label="NUEVA ACTIVIDAD" @add-item="openCreate">
               <template #options-column="{ row }">
-                <ActionButtons :row="row" :show-view="true" :show-edit="true" :show-toggle-status="true"
-                  view-tooltip="Ver detalle" edit-tooltip="Editar actividad" activate-tooltip="Activar"
-                  deactivate-tooltip="Desactivar" @view="openDetail" @edit="openEdit" @toggle-status="handleToggleStatus" />
+                <ActionButtons
+                  :row="row"
+                  :show-view="true"
+                  :show-edit="true"
+                  :show-toggle-status="true"
+                  view-tooltip="Ver detalle"
+                  edit-tooltip="Editar actividad"
+                  activate-tooltip="Activar"
+                  deactivate-tooltip="Desactivar"
+                  @view="openDetail"
+                  @edit="openEdit"
+                  @toggle-status="handleToggleStatus"
+                />
               </template>
             </Table>
           </q-card-section>
         </q-card>
       </div>
     </div>
-
     <!-- PERFIL -->
     <q-dialog v-model="showDetail">
       <q-card style="min-width: 800px; max-width: 1000px">

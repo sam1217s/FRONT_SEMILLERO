@@ -21,10 +21,10 @@
             <div class="row q-col-gutter-md q-mb-md">
               <div class="col-12 col-md-6">
                 <q-input v-model="busqueda" filled clearable label="Buscar centros"
-                  placeholder="Buscar por nombre, código o ciudad..." @update:model-value="aplicarFiltro"
-                  @clear="limpiarFiltros">
+                  placeholder="Buscar por nombre, código o ciudad..." @clear="busqueda = ''">
                   <template #prepend><q-icon name="search" /></template>
                 </q-input>
+
               </div>
             </div>
 
@@ -35,7 +35,7 @@
             </div>
 
             <!-- TABLA PRINCIPAL -->
-            <Table v-else :rows="centrosFiltrados" :columns="columns" title="CENTROS DE FORMACIÓN"
+            <Table v-else :rows="filtradatos" :columns="columns" title="CENTROS DE FORMACIÓN"
               add-button-label="AGREGAR CENTRO" @add-item="showAddDialog = true">
               <template #options-column="{ row }">
                 <ActionButtons :row="row" :show-view="true" :show-edit="true" :show-toggle-status="true"
@@ -99,23 +99,21 @@
             <q-card-section>
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-md-6">
-                  <q-input v-model="formData.nombre" filled label="Nombre del centro" />
-                  <q-input v-model="formData.codigo" filled label="Código" class="q-mt-md" />
-                  <q-input v-model="formData.ciudad" filled label="Ciudad" class="q-mt-md" />
-                  <q-input v-model="formData.capacidad" type="number" filled label="Capacidad" class="q-mt-md" />
+                  <q-input v-model="formData.name" filled label="Nombre del centro" />
+                  <q-input v-model="formData.code" filled label="Código" class="q-mt-md" />
+                  <q-input v-model="formData.city" filled label="Ciudad" class="q-mt-md" />
+                  <q-input v-model="formData.student_capacity" type="number" filled label="Capacidad" class="q-mt-md" />
                 </div>
 
                 <div class="col-12 col-md-6">
-                  <q-input v-model="formData.telefono" filled label="Teléfono" />
+                  <q-input v-model="formData.phone" filled label="Teléfono" />
                   <q-input v-model="formData.email" filled label="Correo electrónico" class="q-mt-md" />
-                  <q-input v-model="formData.direccion" filled label="Dirección" class="q-mt-md" />
-                  <q-input v-model="formData.departamento" filled label="Departamento" class="q-mt-md" />
+                  <q-input v-model="formData.address" filled label="Dirección" class="q-mt-md" />
+                  <q-input v-model="formData.department" filled label="Departamento" class="q-mt-md" />
                 </div>
 
                 <div class="col-12 q-mt-md">
-                  <q-input v-model="formData.descripcion" type="textarea" filled label="Descripción" rows="3" />
-                  <q-checkbox v-model="formData.estado" :true-value="1" :false-value="0" color="primary"
-                    label="Centro activo" class="q-mt-md" />
+                  <q-input v-model="formData.description" type="textarea" filled label="Descripción" rows="3" />
                 </div>
               </div>
             </q-card-section>
@@ -132,7 +130,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue"
+import { ref, onMounted, computed } from "vue"
 import Table from "../../components/table.vue"
 import ActionButtons from "../../components/ActionButtons.vue"
 import { getData, postData, putData } from "../../services/apiClient"
@@ -142,7 +140,6 @@ const { error, info } = useNotifications()
 
 const loading = ref(false)
 const centros = ref([])
-const centrosFiltrados = ref([])
 const busqueda = ref("")
 const showAddDialog = ref(false)
 const showDetailDialog = ref(false)
@@ -151,24 +148,27 @@ const selectedCentro = ref(null)
 const editingCentro = ref(null)
 
 const formData = ref({
-  nombre: "",
-  codigo: "",
-  ciudad: "",
-  telefono: "",
+  name: "",
+  code: "",
+  city: "",
+  phone: "",
   email: "",
-  direccion: "",
-  departamento: "",
-  capacidad: "",
-  descripcion: "",
-  estado: 1
+  address: "",
+  department: "",
+  student_capacity: "",
+  description: "",
+  status: 0
 })
+
 
 // === CRUD ===
 const cargarCentros = async () => {
   try {
     loading.value = true
     const res = await getData("/training-centers/list")
-    centros.value = Array.isArray(res?.data) ? res.data : []
+    centros.value = Array.isArray(res?.msg) ? res.msg : []
+    console.log(centros.value);
+    
   } catch (err) {
     console.error("Error al cargar centros:", err)
     error("No se pudieron cargar los centros de formación")
@@ -176,6 +176,7 @@ const cargarCentros = async () => {
     loading.value = false
   }
 }
+
 
 
 const registrarCentro = async () => {
@@ -192,7 +193,7 @@ const registrarCentro = async () => {
 
 const actualizarCentro = async () => {
   try {
-    await putData(`/training-centers/update/${editingCentro.value.id}`, formData.value)
+    await putData(`/training-centers/update/${editingCentro.value._id}`, formData.value)
     await cargarCentros()
     info("Centro actualizado correctamente")
     closeDialog()
@@ -202,20 +203,21 @@ const actualizarCentro = async () => {
   }
 }
 
-const handleToggleStatus = async centro => {
+// === ACTIVAR / DESACTIVAR ===
+const handleToggleStatus = async (centro) => {
   try {
-    const endpoint =
-      centro.estado === 1
-        ? `/training-centers/inactivate/${centro.id}`
-        : `/training-centers/activate/${centro.id}`
-    await putData(endpoint)
+    const estaActivo = centro.status === 0
+    const nuevoEstado = estaActivo ? "inactivate" : "activate"
+    await putData(`/training-centers/${nuevoEstado}/${centro._id}`)
     await cargarCentros()
-    info(`Centro ${centro.estado === 1 ? "desactivado" : "activado"} correctamente`)
+    info(`Centro ${estaActivo ? "desactivado" : "activado"} correctamente`)
   } catch (err) {
-    console.error("Error al cambiar estado:", err)
-    error("No se pudo cambiar el estado del centro")
+    console.error("Error al cambiar estado del centro:", err)
+    error("No se pudo actualizar el estado del centro")
   }
 }
+
+
 
 // === ACCIONES ===
 const handleViewDetalle = c => {
@@ -252,32 +254,32 @@ const closeDialog = () => {
 const onSubmitCentro = () =>
   isEditMode.value ? actualizarCentro() : registrarCentro()
 
-// === FILTROS ===
-const aplicarFiltro = () => {
-  const term = busqueda.value?.toLowerCase().trim() || ""
-  centrosFiltrados.value = term
-    ? centros.value.filter(c =>
-      [c.nombre, c.codigo, c.ciudad].some(f =>
-        f?.toLowerCase().includes(term)
-      )
-    )
-    : centros.value
-}
+// === FILTRO AUTOMÁTICO ===
+const filtradatos= computed(()=>{
+   if (!busqueda.value.toLowerCase()) {
+        return centros.value;
+      }
+  return  centros.value.filter(item =>{
+    return(
+    item.name.toLowerCase().includes(busqueda.value.toLowerCase())||
+    item.code.toLowerCase().includes(busqueda.value.toLowerCase())||
+    item.city.toLowerCase().includes(busqueda.value.toLowerCase())
+  )
+  })
+})
 
-const limpiarFiltros = () => {
-  busqueda.value = ""
-  aplicarFiltro()
-}
+
 
 // === COLUMNAS ===
 const columns = [
-  { name: "nombre", label: "Nombre", field: "nombre", align: "left" },
-  { name: "codigo", label: "Código", field: "codigo", align: "center" },
-  { name: "ciudad", label: "Ciudad", field: "ciudad", align: "center" },
-  { name: "capacidad", label: "Capacidad", field: "capacidad", align: "center" },
-  { name: "estado", label: "Estado", field: "estado", align: "center", format: val => val === 1 ? "Activo" : "Inactivo" },
+  { name: "name", label: "Nombre", field: "name", align: "left" },
+  { name: "code", label: "Código", field: "code", align: "center" },
+  { name: "city", label: "Ciudad", field: "city", align: "center" },
+  { name: "student_capacity", label: "Capacidad", field: "student_capacity", align: "center" },
+  { name: "status", label: "Estado" },
   { name: "options", label: "Opciones", field: "options", align: "center" }
 ]
+
 
 onMounted(cargarCentros)
 </script>
