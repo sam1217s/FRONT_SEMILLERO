@@ -3,8 +3,9 @@
     <div class="row q-col-gutter-md">
       <div class="col-12">
         <q-card class="shadow-1">
+          <!-- HEADER -->
           <q-card-section>
-            <div class="text-h6 text-weight-bold text-primary">
+            <div class="page-title">
               <q-icon name="school" class="q-mr-sm" />
               Semilleros
             </div>
@@ -12,73 +13,44 @@
               Gestiona semilleros de investigación
             </div>
           </q-card-section>
-          
-          <q-card-section>
-            <Table
-              :rows="semilleros"
-              :columns="tableColumns"
-              title="SEMILLEROS"
-              add-button-label="AGREGAR"
-              @add-item="openCreate"
-            >
-              <template #filters>
-                <div class="row q-gutter-sm items-center">
-                  <q-input
-                    v-model="filtroNombre"
-                    dense outlined clearable
-                    placeholder="Buscar por nombre"
-                    @update:model-value="aplicarFiltro"
-                    style="min-width: 220px;"
-                  >
-                    <template #prepend>
-                      <q-icon name="search" />
-                    </template>
-                  </q-input>
-                  <q-select
-                    v-model="filtroEstado"
-                    :options="estadoOptions"
-                    option-label="label" option-value="value"
-                    emit-value map-options
-                    dense outlined clearable
-                    label="Estado"
-                    @update:model-value="aplicarFiltro"
-                    style="min-width: 140px;"
-                  />
-                  <q-select
-                    v-model="filtroGrupo"
-                    :options="grupoOptions"
-                    option-label="label" option-value="value"
-                    emit-value map-options
-                    dense outlined clearable
-                    label="Grupo"
-                    @update:model-value="aplicarFiltro"
-                    style="min-width: 200px;"
-                  />
-                  <q-select
-                    v-model="filtroLider"
-                    :options="liderOptions"
-                    option-label="label" option-value="value"
-                    emit-value map-options
-                    dense outlined clearable
-                    label="Líder"
-                    @update:model-value="aplicarFiltro"
-                    style="min-width: 200px;"
-                  />
-                </div>
-              </template>
 
+          <!-- TABLA -->
+          <q-card-section>
+            <!-- FILTROS -->
+            <div class="row q-col-gutter-md q-mb-md">
+              <div class="col-12 col-md-4">
+                <q-input v-model="busqueda" filled clearable label="Buscar" placeholder="Buscar por nombre...">
+                  <template #prepend><q-icon name="search" /></template>
+                </q-input>
+              </div>
+              <div class="col-6 col-md-2">
+                <q-select v-model="filtroEstado" :options="estadoOptions" option-label="label" option-value="value"
+                  emit-value map-options filled clearable label="Estado" />
+              </div>
+              <div class="col-6 col-md-3">
+                <q-select v-model="filtroGrupo" :options="grupoOptions" option-label="label" option-value="value"
+                  emit-value map-options filled clearable label="Grupo" />
+              </div>
+              <div class="col-12 col-md-3">
+                <q-select v-model="filtroLider" :options="liderOptions" option-label="label" option-value="value"
+                  emit-value map-options filled clearable label="Líder" />
+              </div>
+            </div>
+
+            <!-- LOADING -->
+            <div v-if="loading" class="text-center q-pa-xl">
+              <q-spinner-dots size="50px" color="primary" />
+              <div class="text-h6 text-grey-6 q-mt-md">Cargando semilleros...</div>
+            </div>
+
+            <!-- TABLA PRINCIPAL -->
+            <Table v-else :rows="rowsMostrados" :columns="tableColumns" title="SEMILLEROS"
+              add-button-label="AGREGAR" @add-item="openCreate">
               <template #options-column="{ row }">
-                <ActionButtons
-                  :row="row"
-                  :show-view="true"
-                  :show-edit="true"
-                  :show-toggle-status="true"
-                  view-tooltip="Ver detalle"
-                  edit-tooltip="Editar semillero"
-                  @view="openDetail"
-                  @edit="handleEditSemillero"
-                  @toggle-status="handleToggleStatus"
-                />
+                <ActionButtons :row="row" :show-view="true" :show-edit="true" :show-toggle-status="true"
+                  view-tooltip="Ver detalle" edit-tooltip="Editar semillero" activate-tooltip="Activar"
+                  deactivate-tooltip="Desactivar" @view="openDetail" @edit="handleEditSemillero"
+                  @toggle-status="handleToggleStatus" />
               </template>
             </Table>
           </q-card-section>
@@ -86,95 +58,51 @@
       </div>
     </div>
 
-    <!-- Modal de detalle -->
-    <q-dialog v-model="showDetail">
-      <q-card style="min-width: 640px; max-width: 900px">
-        <q-card-section class="detail-modal-header">
-          <div>
-            <div class="text-h6 text-white">Detalle del semillero</div>
-            <div class="text-caption text-white-70">Información completa del semillero</div>
+    <!-- PERFIL -->
+    <q-dialog v-model="showProfileDialog">
+      <q-card style="min-width: 800px; max-width: 1000px">
+        <q-card-section class="modal-header">
+          <div class="text-h6">
+            <q-icon name="visibility" class="q-mr-sm" /> Detalle del Semillero
           </div>
-          <div class="row q-gutter-xs">
-            <q-badge :color="current?.status === 'Active' ? 'green' : 'red'" :label="current?.status === 'Active' ? 'Activo' : 'Inactivo'" class="q-mr-xs" />
-          </div>
+          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
-        <q-separator />
-        <q-card-section class="q-pa-md">
+
+        <q-card-section v-if="selectedSemillero">
           <div class="row q-col-gutter-md">
-            <div class="col-12 col-md-6">
-              <q-list dense>
-                <q-item>
-                  <q-item-section avatar><q-icon name="school" color="primary" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label class="text-weight-bold">Nombre:</q-item-label>
-                    <q-item-label>{{ current?.name || '-' }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section avatar><q-icon name="group" color="primary" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label class="text-weight-bold">Grupo de investigación:</q-item-label>
-                    <q-item-label>{{ current?.id_group?.name || '-' }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section avatar><q-icon name="person" color="primary" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label class="text-weight-bold">Líder:</q-item-label>
-                    <q-item-label>{{ current?.id_leader?.name || '-' }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section avatar><q-icon name="category" color="primary" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label class="text-weight-bold">Categoría:</q-item-label>
-                    <q-item-label>{{ current?.id_group?.category || '-' }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
+            <div class="col-12">
+              <div class="text-h6 text-primary q-mb-md">{{ selectedSemillero.name }}</div>
             </div>
+
             <div class="col-12 col-md-6">
-              <q-list dense>
-                <q-item>
-                  <q-item-section avatar><q-icon name="calendar_today" color="primary" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label class="text-weight-bold">Fecha de creación:</q-item-label>
-                    <q-item-label>{{ formatDate(current?.seedbed_creation_date) }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section avatar><q-icon name="science" color="primary" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label class="text-weight-bold">Líneas de investigación:</q-item-label>
-                    <q-item-label>{{ current?.research_lines || '-' }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section avatar><q-icon name="topic" color="primary" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label class="text-weight-bold">Áreas temáticas:</q-item-label>
-                    <q-item-label>{{ current?.thematic_areas || '-' }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section avatar><q-icon name="network_check" color="primary" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label class="text-weight-bold">Red tecnológica:</q-item-label>
-                    <q-item-label>{{ current?.technology_network || '-' }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
+              <div class="text-subtitle2 text-primary q-mb-sm">Información General</div>
+              <div class="info-item"><strong>Nombre:</strong> {{ selectedSemillero.name || '-' }}</div>
+              <div class="info-item"><strong>Grupo de investigación:</strong> {{ selectedSemillero.id_group?.name || '-' }}</div>
+              <div class="info-item"><strong>Líder:</strong> {{ selectedSemillero.id_leader?.name || '-' }}</div>
+              <div class="info-item"><strong>Categoría:</strong> {{ selectedSemillero.id_group?.category || '-' }}</div>
+              <div class="info-item">
+                <strong>Estado:</strong>
+                <q-badge :color="selectedSemillero.status === 'Active' ? 'positive' : 'grey'">
+                  {{ selectedSemillero.status === 'Active' ? 'Activo' : 'Inactivo' }}
+                </q-badge>
+              </div>
             </div>
-          </div>
-          <q-separator class="q-my-md" />
-          <div class="q-mt-md">
-            <div class="text-subtitle1 text-weight-bold q-mb-sm">Descripción:</div>
-            <q-banner rounded class="bg-blue-1 text-blue-9 q-pa-md">
-              {{ current?.description || 'Sin descripción' }}
-            </q-banner>
+
+            <div class="col-12 col-md-6">
+              <div class="text-subtitle2 text-primary q-mb-sm">Detalles Académicos</div>
+              <div class="info-item"><strong>Fecha de creación:</strong> {{ formatDate(selectedSemillero.seedbed_creation_date) }}</div>
+              <div class="info-item"><strong>Líneas de investigación:</strong> {{ selectedSemillero.research_lines || '-' }}</div>
+              <div class="info-item"><strong>Áreas temáticas:</strong> {{ selectedSemillero.thematic_areas || '-' }}</div>
+              <div class="info-item"><strong>Red tecnológica:</strong> {{ selectedSemillero.technology_network || '-' }}</div>
+            </div>
+
+            <div class="col-12" v-if="selectedSemillero.description">
+              <div class="text-subtitle2 text-primary q-mb-sm">Descripción</div>
+              <div class="info-item">{{ selectedSemillero.description }}</div>
+            </div>
           </div>
         </q-card-section>
-        <q-separator />
+
         <q-card-actions align="right">
           <q-btn flat label="Cerrar" v-close-popup />
           <q-btn color="primary" label="Editar" @click="openEditFromDetail" />
@@ -182,117 +110,72 @@
       </q-card>
     </q-dialog>
 
-    <!-- Modal de crear/editar -->
-    <q-dialog v-model="showForm">
-      <q-card style="min-width: 720px; max-width: 900px">
-        <q-card-section class="detail-header">
-          <div class="text-h6">{{ isEdit ? 'Editar semillero' : 'Nuevo semillero' }}</div>
-          <div class="text-caption">Completa los campos y guarda los cambios</div>
+    <!-- CREAR/EDITAR -->
+    <q-dialog v-model="showAddDialog">
+      <q-card style="min-width: 800px; max-width: 900px">
+        <q-card-section class="modal-header">
+          <div class="text-h6">
+            {{ isEditMode ? 'Editar Semillero' : 'Nuevo Semillero' }}
+          </div>
+          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
-        <q-separator />
+
         <q-card-section>
-          <q-form @submit.prevent="onSubmit">
-            <div class="row q-col-gutter-md">
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.name" label="Nombre del semillero" outlined dense :rules="[val => !!val || 'Obligatorio']" />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-select
-                  v-model="form.id_group"
-                  :options="grupoOptions"
-                  option-label="label"
-                  option-value="value"
-                  emit-value
-                  map-options
-                  label="Grupo de investigación"
-                  outlined
-                  dense
-                  :rules="[val => !!val || 'Obligatorio']"
-                  clearable
-                />
-              </div>
-              <div class="col-12">
-                <div class="text-subtitle2 q-mb-xs">Descripción</div>
-                <q-input v-model="form.description" type="textarea" label="Descripción" outlined dense autogrow />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.research_lines" label="Líneas de investigación" outlined dense />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.thematic_areas" label="Áreas temáticas" outlined dense />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.technology_network" label="Red tecnológica" outlined dense />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.logo" label="URL del logo" outlined dense />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-select
-                  v-model="form.id_leader"
-                  :options="liderOptions"
-                  option-label="label"
-                  option-value="value"
-                  emit-value
-                  map-options
-                  label="Líder del semillero"
-                  outlined
-                  dense
-                  :rules="[val => !!val || 'Obligatorio']"
-                  clearable
-                />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.seedbed_creation_date" label="Fecha de creación" outlined dense type="date" />
-              </div>
+          <div class="row q-col-gutter-md">
+            <div class="col-12 col-md-6">
+              <q-input v-model="formData.name" filled label="Nombre del semillero" />
+              <q-select v-model="formData.id_group" :options="grupoOptions" option-label="label" option-value="value"
+                emit-value map-options filled label="Grupo de investigación" clearable class="q-mt-md" />
+              <q-select v-model="formData.id_leader" :options="liderOptions" option-label="label" option-value="value"
+                emit-value map-options filled label="Líder del semillero" clearable class="q-mt-md" />
+              <q-input v-model="formData.seedbed_creation_date" filled label="Fecha de creación" type="date" class="q-mt-md" />
             </div>
 
-            <div class="row justify-end q-gutter-sm q-mt-md">
-              <q-btn flat label="Cancelar" v-close-popup />
-              <q-btn color="primary" :label="isEdit ? 'Actualizar' : 'Crear'" type="submit" unelevated />
+            <div class="col-12 col-md-6">
+              <q-input v-model="formData.research_lines" filled label="Líneas de investigación" />
+              <q-input v-model="formData.thematic_areas" filled label="Áreas temáticas" class="q-mt-md" />
+              <q-input v-model="formData.technology_network" filled label="Red tecnológica" class="q-mt-md" />
+              <q-input v-model="formData.logo" filled label="URL del logo" class="q-mt-md" />
             </div>
-          </q-form>
+
+            <div class="col-12">
+              <q-input v-model="formData.description" filled label="Descripción" type="textarea" rows="3" />
+            </div>
+          </div>
         </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" color="grey" @click="closeDialog" />
+          <q-btn :label="isEditMode ? 'Actualizar' : 'Registrar'" color="primary" @click="onSubmitSemillero" />
+        </q-card-actions>
       </q-card>
     </q-dialog>
+
   </q-page>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useQuasar } from 'quasar'
+import { getData, postData, putData } from '../../services/apiClient'
+import { useNotifications } from '../../composables/useNotifications'
 import Table from '../../components/table.vue'
 import ActionButtons from '../../components/ActionButtons.vue'
-import { getData, postData, putData } from '../../services/apiClient.js'
 
-const $q = useQuasar()
+const { error, info } = useNotifications()
 
-// Datos reactivos
+const loading = ref(false)
 const semilleros = ref([])
-const semillerosOriginales = ref([])
-const showDetail = ref(false)
-const showForm = ref(false)
-const isEdit = ref(false)
-const current = ref(null)
+const busqueda = ref('')
+const filtroEstado = ref(null)
+const filtroGrupo = ref(null)
+const filtroLider = ref(null)
+const showAddDialog = ref(false)
+const showProfileDialog = ref(false)
+const isEditMode = ref(false)
+const selectedSemillero = ref(null)
 const editingSemillero = ref(null)
 
-// Filtros
-const filtroNombre = ref('')
-const filtroEstado = ref('')
-const filtroGrupo = ref('')
-const filtroLider = ref('')
-
-// Opciones para selects
-const estadoOptions = [
-  { label: 'Activo', value: 'Active' },
-  { label: 'Inactivo', value: 'Inactive' }
-]
-
-const grupoOptions = ref([])
-const liderOptions = ref([])
-
-// Formulario
-const form = ref({
+const formData = ref({
   name: '',
   description: '',
   research_lines: '',
@@ -304,65 +187,72 @@ const form = ref({
   seedbed_creation_date: ''
 })
 
-// Columnas de la tabla
-const tableColumns = [
-  {
-    name: 'nombre',
-    required: true,
-    label: 'Nombre del Semillero',
-    align: 'left',
-    field: 'name',
-    sortable: true
-  },
-  {
-    name: 'id_group',
-    label: 'Grupo de Investigación',
-    align: 'left',
-    field: 'id_group',
-    sortable: true,
-    format: (val) => val?.name || '-'
-  },
-  {
-    name: 'id_leader',
-    label: 'Líder',
-    align: 'left',
-    field: 'id_leader',
-    sortable: true,
-    format: (val) => val?.name || '-'
-  },
-  {
-    name: 'seedbed_creation_date',
-    label: 'Fecha de Creación',
-    align: 'center',
-    field: 'seedbed_creation_date',
-    sortable: true,
-    format: (val) => formatDate(val)
-  },
-  {
-    name: 'status',
-    label: 'Estado',
-    align: 'center',
-    field: 'status',
-    sortable: true,
-    format: (val) => val === 'Active' ? 'Activo' : 'Inactivo'
-  },
-  {
-    name: 'opciones',
-    label: 'Opciones',
-    field: 'opciones',
-    align: 'center',
-    sortable: false
-  }
+// Opciones
+const grupoOptions = ref([])
+const liderOptions = ref([])
+
+const estadoOptions = [
+  { label: 'Activo', value: 'Active' },
+  { label: 'Inactivo', value: 'Inactive' }
 ]
 
-// Funciones de utilidad
-const formatDate = (date) => {
+// === FILTRO AUTOMÁTICO ===
+const rowsMostrados = computed(() => {
+  let filtrados = [...semilleros.value]
+
+  // Filtro por estado
+  if (filtroEstado.value) {
+    filtrados = filtrados.filter(s => s.status === filtroEstado.value)
+  }
+
+  // Filtro por grupo
+  if (filtroGrupo.value) {
+    filtrados = filtrados.filter(s => {
+      const groupId = s.id_group?._id || s.id_group
+      return groupId === filtroGrupo.value
+    })
+  }
+
+  // Filtro por líder
+  if (filtroLider.value) {
+    filtrados = filtrados.filter(s => {
+      const leaderId = s.id_leader?._id || s.id_leader
+      return leaderId === filtroLider.value
+    })
+  }
+
+  // Filtro por búsqueda de texto
+  const term = busqueda.value?.toLowerCase().trim()
+  if (term) {
+    filtrados = filtrados.filter(s =>
+      (s.name || '').toLowerCase().includes(term)
+    )
+  }
+
+  return filtrados.map(s => ({
+    ...s,
+    id: s._id,
+    opciones: 'opciones'
+  }))
+})
+
+// === COLUMNAS ===
+const tableColumns = [
+  { name: 'nombre', label: 'Nombre del Semillero', field: 'name', align: 'left' },
+  { name: 'id_group', label: 'Grupo de Investigación', field: 'id_group', align: 'center', format: (val) => val?.name || '-' },
+  { name: 'id_leader', label: 'Líder', field: 'id_leader', align: 'center', format: (val) => val?.name || '-' },
+  { name: 'seedbed_creation_date', label: 'Fecha de Creación', field: 'seedbed_creation_date', align: 'center', format: (val) => formatDate(val) },
+  { name: 'status', label: 'Estado', field: 'status', align: 'center', format: (val) => val === 'Active' ? 'Activo' : 'Inactivo' },
+  { name: 'opciones', label: 'Opciones', field: 'opciones', align: 'center' }
+]
+
+// === HELPERS ===
+function formatDate(date) {
   if (!date) return '-'
   return new Date(date).toLocaleDateString('es-CO')
 }
 
-// Devuelve YYYY-MM-DD para inputs type="date"
-const toISOInput = (date) => {
+function toISOInput(date) {
   if (!date) return ''
   const d = new Date(date)
   const y = d.getFullYear()
@@ -371,8 +261,164 @@ const toISOInput = (date) => {
   return `${y}-${m}-${day}`
 }
 
-const resetForm = () => {
-  form.value = {
+// === CRUD ===
+// Cargar semilleros
+const cargarSemilleros = async () => {
+  try {
+    loading.value = true
+    const res = await getData('/seedbeds/list')
+    const list = Array.isArray(res) ? res : (res?.msg || [])
+    semilleros.value = list
+  } catch (err) {
+    console.error('Error al cargar semilleros:', err)
+    error('No se pudieron cargar los semilleros')
+  } finally {
+    loading.value = false
+  }
+}
+
+// Cargar grupos
+const cargarGrupos = async () => {
+  try {
+    const res = await getData('/research-groups/list')
+    const list = Array.isArray(res) ? res : (res?.msg || [])
+    grupoOptions.value = list.map(group => ({
+      label: group.name,
+      value: group._id
+    }))
+  } catch (err) {
+    console.error('Error al cargar grupos:', err)
+  }
+}
+
+// Cargar líderes
+const cargarLideres = async () => {
+  try {
+    const res = await getData('/researchers/list')
+    const list = Array.isArray(res) ? res : (res?.msg || [])
+    const leaders = list.filter(researcher =>
+      researcher.roles?.some(role => ['LIDER', 'LEADER', 'LEAD_RESEARCHER'].includes(role.role))
+    )
+    liderOptions.value = leaders.map(leader => ({
+      label: leader.name,
+      value: leader._id
+    }))
+  } catch (err) {
+    console.error('Error al cargar líderes:', err)
+  }
+}
+
+// Registrar semillero
+const registrarSemillero = async () => {
+  try {
+    const payload = {
+      name: formData.value.name,
+      description: formData.value.description,
+      research_lines: formData.value.research_lines,
+      thematic_areas: formData.value.thematic_areas,
+      technology_network: formData.value.technology_network,
+      id_group: formData.value.id_group,
+      id_leader: formData.value.id_leader,
+      logo: formData.value.logo,
+      seedbed_creation_date: formData.value.seedbed_creation_date || undefined
+    }
+    await postData('/seedbeds/create', payload)
+    await cargarSemilleros()
+    info('Semillero registrado correctamente')
+    closeDialog()
+  } catch (err) {
+    console.error('Error al registrar semillero:', err)
+    error('No se pudo registrar el semillero')
+  }
+}
+
+// Actualizar semillero
+const actualizarSemillero = async () => {
+  try {
+    const payload = {
+      name: formData.value.name,
+      description: formData.value.description,
+      research_lines: formData.value.research_lines,
+      thematic_areas: formData.value.thematic_areas,
+      technology_network: formData.value.technology_network,
+      id_group: formData.value.id_group,
+      id_leader: formData.value.id_leader,
+      logo: formData.value.logo,
+      seedbed_creation_date: formData.value.seedbed_creation_date || undefined
+    }
+    await putData(`/seedbeds/update/${editingSemillero.value._id}`, payload)
+    await cargarSemilleros()
+    info('Semillero actualizado correctamente')
+    closeDialog()
+  } catch (err) {
+    console.error('Error al actualizar semillero:', err)
+    error('No se pudo actualizar el semillero')
+  }
+}
+
+// Activar/Desactivar semillero
+const handleToggleStatus = async (semillero) => {
+  try {
+    const newStatus = semillero.status === 'Active' ? 'Inactive' : 'Active'
+    const endpoint = newStatus === 'Active' ? 'activate' : 'inactivate'
+    await putData(`/seedbeds/${endpoint}/${semillero.id}`)
+    await cargarSemilleros()
+    info(`Semillero ${newStatus === 'Active' ? 'activado' : 'desactivado'} correctamente`)
+  } catch (err) {
+    console.error('Error al cambiar estado:', err)
+    error('No se pudo cambiar el estado del semillero')
+  }
+}
+
+// === ACCIONES ===
+const openCreate = () => {
+  formData.value = {
+    name: '',
+    description: '',
+    research_lines: '',
+    thematic_areas: '',
+    technology_network: '',
+    id_group: '',
+    id_leader: '',
+    logo: '',
+    seedbed_creation_date: ''
+  }
+  isEditMode.value = false
+  showAddDialog.value = true
+}
+
+const openDetail = (semillero) => {
+  selectedSemillero.value = semillero
+  showProfileDialog.value = true
+}
+
+const handleEditSemillero = (semillero) => {
+  editingSemillero.value = semillero
+  formData.value = {
+    name: semillero.name || '',
+    description: semillero.description || '',
+    research_lines: semillero.research_lines || '',
+    thematic_areas: semillero.thematic_areas || '',
+    technology_network: semillero.technology_network || '',
+    id_group: semillero.id_group?._id || '',
+    id_leader: semillero.id_leader?._id || '',
+    logo: semillero.logo || '',
+    seedbed_creation_date: semillero.seedbed_creation_date ? toISOInput(semillero.seedbed_creation_date) : ''
+  }
+  isEditMode.value = true
+  showAddDialog.value = true
+}
+
+const openEditFromDetail = () => {
+  if (!selectedSemillero.value) return
+  showProfileDialog.value = false
+  handleEditSemillero(selectedSemillero.value)
+}
+
+const closeDialog = () => {
+  showAddDialog.value = false
+  isEditMode.value = false
+  formData.value = {
     name: '',
     description: '',
     research_lines: '',
@@ -385,245 +431,36 @@ const resetForm = () => {
   }
 }
 
-// Cargar datos
-const cargarSemilleros = async () => {
-  try {
-    const response = await getData('/seedbeds/list')
-    const list = Array.isArray(response) ? response : (response?.msg || [])
-    console.log('🌱 Lista semilleros cargada del backend:', list)
-    semilleros.value = list.map(semillero => ({
-      ...semillero,
-      id: semillero._id,
-      opciones: 'opciones'
-    }))
-    semillerosOriginales.value = [...semilleros.value]
-  } catch (error) {
-    console.error('Error cargando semilleros:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error cargando semilleros'
-    })
-  }
-}
+const onSubmitSemillero = () =>
+  isEditMode.value ? actualizarSemillero() : registrarSemillero()
 
-const loadGroups = async () => {
-  try {
-    const response = await getData('/research-groups/list')
-    const list = Array.isArray(response) ? response : (response?.msg || [])
-    grupoOptions.value = list.map(group => ({
-      label: group.name,
-      value: group._id,
-      raw: group
-    }))
-  } catch (error) {
-    console.error('Error cargando grupos:', error)
-  }
-}
-
-const loadLeaders = async () => {
-  try {
-    const response = await getData('/researchers/list')
-    const list = Array.isArray(response) ? response : (response?.msg || [])
-    const leaders = list.filter(researcher => 
-      researcher.roles?.some(role => ['LIDER', 'LEADER', 'LEAD_RESEARCHER'].includes(role.role))
-    )
-    liderOptions.value = leaders.map(leader => ({
-      label: leader.name,
-      value: leader._id,
-      raw: leader
-    }))
-  } catch (error) {
-    console.error('Error cargando líderes:', error)
-  }
-}
-
-// Filtros
-const aplicarFiltro = () => {
-  let filtrados = [...semillerosOriginales.value]
-
-  if (filtroNombre.value) {
-    filtrados = filtrados.filter(s => 
-      s.name.toLowerCase().includes(filtroNombre.value.toLowerCase())
-    )
-  }
-
-  if (filtroEstado.value) {
-    filtrados = filtrados.filter(s => s.status === filtroEstado.value)
-  }
-
-  if (filtroGrupo.value) {
-    filtrados = filtrados.filter(s => s.id_group?._id === filtroGrupo.value)
-  }
-
-  if (filtroLider.value) {
-    filtrados = filtrados.filter(s => s.id_leader?._id === filtroLider.value)
-  }
-
-  semilleros.value = filtrados
-}
-
-// Modales
-const openCreate = () => {
-  resetForm()
-  isEdit.value = false
-  showForm.value = true
-}
-
-const openEdit = (semillero) => {
-  editingSemillero.value = semillero
-  form.value = {
-    name: semillero.name || '',
-    description: semillero.description || '',
-    research_lines: semillero.research_lines || '',
-    thematic_areas: semillero.thematic_areas || '',
-    technology_network: semillero.technology_network || '',
-    id_group: semillero.id_group?._id || '',
-    id_leader: semillero.id_leader?._id || '',
-    logo: semillero.logo || '',
-    seedbed_creation_date: semillero.seedbed_creation_date ? toISOInput(semillero.seedbed_creation_date) : ''
-  }
-  isEdit.value = true
-  showForm.value = true
-}
-
-const openDetail = (semillero) => {
-  current.value = semillero
-  showDetail.value = true
-}
-
-const openEditFromDetail = () => {
-  if (!current.value) return
-  showDetail.value = false
-  openEdit(current.value)
-}
-
-// Handlers
-const handleEditSemillero = (semillero) => {
-  openEdit(semillero)
-}
-
-const handleToggleStatus = async (semillero) => {
-  try {
-    const newStatus = semillero.status === 'Active' ? 'Inactive' : 'Active'
-    const endpoint = newStatus === 'Active' ? 'activate' : 'inactivate'
-    
-    await putData(`/seedbeds/${endpoint}/${semillero.id}`)
-    
-    // Actualizar estado local
-    semillero.status = newStatus
-    const index = semilleros.value.findIndex(s => s.id === semillero.id)
-    if (index !== -1) {
-      semilleros.value[index].status = newStatus
-    }
-    
-    $q.notify({
-      type: 'positive',
-      message: `Semillero ${newStatus === 'Active' ? 'activado' : 'desactivado'} correctamente`
-    })
-  } catch (error) {
-    console.error('Error cambiando estado:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error cambiando estado del semillero'
-    })
-  }
-}
-
-const limpiarFiltros = () => {
-  filtroNombre.value = ''
-  filtroEstado.value = ''
-  filtroGrupo.value = ''
-  filtroLider.value = ''
-}
-
-// Submit
-const onSubmit = async () => {
-  try {
-    const semilleroData = {
-      name: form.value.name,
-      description: form.value.description,
-      research_lines: form.value.research_lines,
-      thematic_areas: form.value.thematic_areas,
-      technology_network: form.value.technology_network,
-      id_group: form.value.id_group,
-      id_leader: form.value.id_leader,
-      logo: form.value.logo,
-      seedbed_creation_date: form.value.seedbed_creation_date || undefined
-    }
-    console.log('🌱 Enviando semillero:', JSON.stringify(semilleroData, null, 2), 'Edit:', isEdit.value)
-
-    if (isEdit.value) {
-      const res = await putData(`/seedbeds/update/${editingSemillero.value.id}`, semilleroData)
-      console.log('🌱 Respuesta actualización semillero:', res)
-      $q.notify({
-        type: 'positive',
-        message: 'Semillero actualizado correctamente'
-      })
-    } else {
-      const res = await postData('/seedbeds/create', semilleroData)
-      console.log('🌱 Respuesta creación semillero:', res)
-      $q.notify({
-        type: 'positive',
-        message: 'Semillero creado correctamente'
-      })
-    }
-
-    showForm.value = false
-    limpiarFiltros()
-    await cargarSemilleros()
-    aplicarFiltro()
-  } catch (error) {
-    console.error('🌱 Error guardando semillero:', error.response?.data || error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error guardando semillero'
-    })
-  }
-}
-
-// Lifecycle
 onMounted(async () => {
-  await Promise.all([
-    cargarSemilleros(),
-    loadGroups(),
-    loadLeaders()
-  ])
+  await Promise.all([cargarGrupos(), cargarLideres()])
+  await cargarSemilleros()
 })
 </script>
 
 <style scoped>
-.q-card {
-  border-radius: 12px;
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #71277A;
 }
 
-.detail-modal-header {
-  background: linear-gradient(135deg, #71277A 0%, #5b1f62 100%);
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #71277A;
   color: white;
 }
 
-.detail-modal-header .text-caption {
-  color: rgba(255,255,255,0.85);
+.text-primary {
+  color: #71277A !important;
 }
 
-.detail-header {
-  background: linear-gradient(135deg, #71277A 0%, #5b1f62 100%);
-  color: white;
-}
-
-.detail-header .text-caption {
-  color: rgba(255,255,255,0.85);
-}
-
-.filter-input, .filter-select {
-  min-width: 100%;
-  font-size: 0.85rem;
-  padding-top: 2px;
-  padding-bottom: 2px;
-}
-@media (max-width: 600px) {
-  .filter-input, .filter-select {
-    min-width: 100%;
-    margin-bottom: 8px;
-  }
+.info-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
 }
 </style>
