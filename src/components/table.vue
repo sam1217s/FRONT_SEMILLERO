@@ -2,12 +2,12 @@
   <div class="projects-table-container">
     <!-- Header -->
     <div class="table-header">
-      <div class="table-title">{{ title || 'TABLA' }}</div>
+      <div class="table-title">{{ title }}</div>
       <div class="table-actions">
         <slot name="filters"></slot>
         <q-btn
           v-if="showAddButton"
-          :label="addButtonLabel || 'AGREGAR'"
+          :label="addButtonLabel"
           color="primary"
           unelevated
           padding="sm lg"
@@ -28,7 +28,7 @@
       class="projects-table"
     >
       <!-- Header personalizado -->
-      <template v-slot:header="props">
+      <template #header="props">
         <q-tr :props="props" class="table-header-row">
           <q-th
             v-for="col in props.cols"
@@ -42,35 +42,39 @@
       </template>
 
       <!-- Cuerpo dinámico -->
-      <template v-slot:body="props">
+      <template #body="props">
         <q-tr :props="props" class="table-body-row">
           <q-td
             v-for="col in props.cols"
             :key="col.name"
             :props="props"
-            :class="col.name === 'nombre' || col.name === 'proyecto' 
-              ? 'table-body-cell name-cell' 
-              : 'table-body-cell center-cell'"
+            :class="getCellClass(col.name)"
           >
-            <!-- Columna normal -->
-            <template v-if="col.name !== 'options'">
-              <slot :name="`cell-${col.name}`" :row="props.row" :value="props.row[col.field]">
-                {{ props.row[col.field] }}
-              </slot>
-            </template>
+            <!-- Slot personalizado por columna -->
+            <slot
+              :name="`cell-${col.name}`"
+              :row="props.row"
+              :value="props.row[col.field]"
+              :col="col"
+            >
+              <!-- Columna de opciones (slot obligatorio) -->
+              <template v-if="col.name === 'options' || col.name === 'opciones'">
+                <slot name="options-column" :row="props.row">
+                  <!-- Fallback por defecto -->
+                </slot>
+              </template>
 
-            <!-- Columna de opciones -->
-            <template v-else>
-              <slot name="options-column" :row="props.row">
-                <q-btn flat icon="menu" label="Acciones por defecto" size="sm" />
-              </slot>
-            </template>
+              <!-- Columna normal con formato -->
+              <template v-else>
+                {{ col.format ? col.format(props.row[col.field]) : props.row[col.field] }}
+              </template>
+            </slot>
           </q-td>
         </q-tr>
       </template>
 
       <!-- Sin datos -->
-      <template v-slot:no-data>
+      <template #no-data>
         <div class="q-pa-md flex flex-center column text-grey">
           <q-icon name="warning" size="2.5em" color="orange" />
           <div class="text-subtitle2 q-mt-sm">No hay datos disponibles</div>
@@ -90,6 +94,17 @@ defineProps({
 })
 
 defineEmits(['add-item'])
+
+// Clase dinámica para celdas
+const getCellClass = (colName) => {
+  const baseClass = 'table-body-cell'
+  const nameColumns = ['nombre', 'proyecto', 'name', 'title']
+
+  if (nameColumns.includes(colName)) {
+    return `${baseClass} name-cell`
+  }
+  return `${baseClass} center-cell`
+}
 </script>
 
 <style scoped>
@@ -177,6 +192,7 @@ defineEmits(['add-item'])
   font-weight: 600 !important;
   text-transform: uppercase;
   font-size: 0.875rem !important;
+  text-align: left !important;
 }
 
 .center-cell {

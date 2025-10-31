@@ -12,44 +12,77 @@
               Administra proyectos de investigación
             </div>
           </q-card-section>
-          
+
           <q-card-section>
-            <TableLider 
-              :rows="tableRows" 
+            <Table
+              :rows="tableRows"
               :columns="columns"
               title="PROYECTOS"
               add-button-label="AGREGAR"
               @add-item="openCreate"
-              @view-item="openDetail"
-              @edit-item="openEdit"
-              @toggle-status="handleToggleStatus"
             >
               <template #filters>
                 <div class="row q-gutter-sm items-center">
-                  <q-input v-model="search" dense outlined clearable placeholder="Buscar por nombre o código"
-                    @update:model-value="applyFilter" style="min-width: 240px;">
+                  <q-input
+                    v-model="search"
+                    dense
+                    outlined
+                    clearable
+                    placeholder="Buscar por nombre o código"
+                    @update:model-value="applyFilter"
+                    style="min-width: 240px"
+                  >
                     <template #prepend>
                       <q-icon name="search" />
                     </template>
                   </q-input>
-                  <q-select v-model="filtroEstado" :options="estadoOptions" option-label="label" option-value="value"
-                    emit-value map-options dense outlined clearable label="Estado" style="min-width: 160px;"
-                    @update:model-value="applyFilter" />
+                  <q-select
+                    v-model="filtroEstado"
+                    :options="estadoOptions"
+                    option-label="label"
+                    option-value="value"
+                    emit-value
+                    map-options
+                    dense
+                    outlined
+                    clearable
+                    label="Estado"
+                    style="min-width: 160px"
+                    @update:model-value="applyFilter"
+                  />
                 </div>
               </template>
-            </TableLider>
+
+              <template #cell-estado="{ value, row }">
+                <q-badge :color="row.status === 'Active' ? 'positive' : 'grey'" :label="value" />
+              </template>
+
+              <template #options-column="{ row }">
+                <ActionButtons
+                  :row="row"
+                  :show-view="true"
+                  :show-edit="true"
+                  :show-toggle-status="true"
+                  view-tooltip="Ver detalle"
+                  edit-tooltip="Editar proyecto"
+                  @view="openDetail"
+                  @edit="openEdit"
+                  @toggle-status="handleToggleStatus"
+                />
+              </template>
+            </Table>
           </q-card-section>
         </q-card>
       </div>
     </div>
-    
+
     <!-- Detalle -->
     <q-dialog v-model="showDetail">
       <q-card style="min-width: 640px; max-width: 900px">
         <q-card-section class="detail-header">
           <div class="row items-center justify-between">
             <div class="text-h6">Detalle del proyecto</div>
-            <q-badge :color="(current?.status === 'Active') ? 'positive' : 'grey'">
+            <q-badge :color="current?.status === 'Active' ? 'positive' : 'grey'">
               {{ current?.status === 'Active' ? 'Activo' : 'Inactivo' }}
             </q-badge>
           </div>
@@ -132,8 +165,7 @@
                 <q-input v-model="form.description" type="textarea" label="Descripción" outlined dense autogrow />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model="form.start_date" label="Fecha inicio" outlined dense type="date"
-                  :rules="[v => !!v || 'Obligatorio']" />
+                <q-input v-model="form.start_date" label="Fecha inicio" outlined dense type="date" :rules="[v => !!v || 'Obligatorio']" />
               </div>
               <div class="col-12 col-md-6">
                 <q-input v-model="form.end_date" label="Fecha fin" outlined dense type="date" />
@@ -152,7 +184,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import TableLider from '../../components/tableLider.vue'
+import Table from '../../components/table.vue'
+import ActionButtons from '../../components/ActionButtons.vue'
 import { getData, postData, putData } from '../../services/apiClient'
 
 const rows = ref([])
@@ -172,45 +205,12 @@ const form = ref({
   end_date: ''
 })
 
-// Columnas de la tabla
 const columns = [
-  {
-    name: 'nombre',
-    required: true,
-    label: 'Nombre del Proyecto',
-    align: 'left',
-    field: 'project_name',
-    sortable: true
-  },
-  {
-    name: 'codigo',
-    label: 'Código',
-    align: 'center',
-    field: 'code',
-    sortable: true
-  },
-  {
-    name: 'estado',
-    label: 'Estado',
-    align: 'center',
-    field: 'estado',
-    sortable: true,
-    format: (v) => v
-  },
-  {
-    name: 'fecha',
-    label: 'Fecha de Inicio',
-    align: 'center',
-    field: 'start_date',
-    sortable: true
-  },
-  {
-    name: 'opciones',
-    label: 'Opciones',
-    field: 'opciones',
-    align: 'center',
-    sortable: false
-  }
+  { name: 'nombre', required: true, label: 'Nombre del Proyecto', align: 'left', field: 'project_name', sortable: true },
+  { name: 'codigo', label: 'Código', align: 'center', field: 'code', sortable: true },
+  { name: 'estado', label: 'Estado', align: 'center', field: 'estado', sortable: true, format: v => v },
+  { name: 'fecha', label: 'Fecha de Inicio', align: 'center', field: 'start_date', sortable: true },
+  { name: 'options', label: 'Opciones', field: 'options', align: 'center', sortable: false }
 ]
 
 const estadoOptions = [
@@ -223,7 +223,7 @@ const tableRows = computed(() => {
     ...p,
     id: p._id,
     estado: p.status === 'Active' ? 'Activo' : 'Inactivo',
-    opciones: 'opciones'
+    options: 'options'
   }))
 })
 
@@ -271,8 +271,8 @@ function openEdit(row) {
     project_name: row.project_name || '',
     code: row.code || '',
     description: row.description || '',
-    start_date: row.start_date ? new Date(row.start_date).toISOString().slice(0,10) : '',
-    end_date: row.end_date ? new Date(row.end_date).toISOString().slice(0,10) : ''
+    start_date: row.start_date ? new Date(row.start_date).toISOString().slice(0, 10) : '',
+    end_date: row.end_date ? new Date(row.end_date).toISOString().slice(0, 10) : ''
   }
   showForm.value = true
 }
@@ -327,5 +327,9 @@ onMounted(() => {
 .detail-header {
   background: linear-gradient(135deg, #71277A 0%, #5b1f62 100%);
   color: white;
+}
+
+.text-primary {
+  color: #71277A !important;
 }
 </style>

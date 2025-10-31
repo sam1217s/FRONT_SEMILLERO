@@ -12,7 +12,7 @@
               Crear y gestionar grupos de investigación
             </div>
           </q-card-section>
-          
+
           <q-card-section>
             <!-- Filtros -->
             <div class="row q-col-gutter-md q-mb-md">
@@ -54,22 +54,52 @@
               <q-spinner-dots size="50px" color="primary" />
               <div class="text-h6 text-grey-6 q-mt-md">Cargando grupos...</div>
             </div>
-            
+
             <!-- Tabla de grupos -->
-            <Table 
+            <Table
               v-else
               :rows="gruposFiltrados"
               :columns="columns"
               title="GRUPOS"
               add-button-label="AGREGAR"
               @add-item="handleAddGrupo"
-              @view-item="handleViewGrupo"
-              @approve-item="handleEditGrupo"
-              @reject-item="handleToggleStatus"
-            />
+            >
+              <template #cell-estado="{ value, row }">
+                <q-badge
+                  :color="row.estado === 'Activo' ? 'positive' : 'grey'"
+                  :label="value"
+                />
+              </template>
+
+              <template #cell-actions="{ row }">
+                <q-btn
+                  flat
+                  dense
+                  round
+                  color="info"
+                  icon="visibility"
+                  @click="handleViewGrupo(row)"
+                >
+                  <q-tooltip>Ver Detalle</q-tooltip>
+                </q-btn>
+              </template>
+
+              <template #options-column="{ row }">
+                <ActionButtons
+                  :row="row"
+                  :show-edit="true"
+                  :show-toggle-status="true"
+                  edit-tooltip="Editar grupo"
+                  :activate-tooltip="row.estado === 'Inactivo' ? 'Activar' : 'Desactivar'"
+                  :deactivate-tooltip="row.estado === 'Inactivo' ? 'Activar' : 'Desactivar'"
+                  @edit="handleEditGrupo"
+                  @toggle-status="handleToggleStatus"
+                />
+              </template>
+            </Table>
           </q-card-section>
         </q-card>
-        
+
         <!-- Modal: Ver Detalle del Grupo -->
         <q-dialog v-model="showDetailDialog">
           <q-card style="min-width: 800px; max-width: 1000px">
@@ -137,99 +167,24 @@
               <div class="row q-col-gutter-md">
                 <!-- Columna izquierda -->
                 <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="formData.nombre"
-                    filled
-                    label="Nombre del Grupo"
-                    placeholder="Ingrese nombre del grupo"
-                    :rules="[val => !!val || 'El nombre es obligatorio']"
-                  />
-                  
-                  <q-input
-                    v-model="formData.registro_minciencias"
-                    filled
-                    label="Registro MinCiencias"
-                    placeholder="Ej: COL123456789"
-                    class="q-mt-md"
-                    :rules="[val => !!val || 'El registro es obligatorio']"
-                  />
-                  
-                  <q-select
-                    v-model="formData.categoria"
-                    filled
-                    label="Categoría"
-                    :options="categoriaOptions"
-                    option-label="label"
-                    option-value="value"
-                    emit-value
-                    map-options
-                    placeholder="Seleccione categoría"
-                    class="q-mt-md"
-                    :rules="[val => !!val || 'La categoría es obligatoria']"
-                  />
-                  
-                  <q-select
-                    v-model="formData.centro"
-                    filled
-                    clearable
-                    use-input
-                    fill-input
-                    input-debounce="200"
-                    label="Centro de Investigación"
-                    :options="centrosOptions"
-                    option-label="name"
-                    option-value="_id"
-                    emit-value
-                    map-options
-                    placeholder="Seleccione centro"
-                    class="q-mt-md"
-                    :rules="[val => !!val || 'El centro es obligatorio']"
-                    @update:model-value="updateLocation"
-                  />
+                  <q-input v-model="formData.nombre" filled label="Nombre del Grupo" placeholder="Ingrese nombre del grupo" :rules="[val => !!val || 'El nombre es obligatorio']" />
+                  <q-input v-model="formData.registro_minciencias" filled label="Registro MinCiencias" placeholder="Ej: COL123456789" class="q-mt-md" :rules="[val => !!val || 'El registro es obligatorio']" />
+                  <q-select v-model="formData.categoria" filled label="Categoría" :options="categoriaOptions" option-label="label" option-value="value" emit-value map-options placeholder="Seleccione categoría" class="q-mt-md" :rules="[val => !!val || 'La categoría es obligatoria']" />
+                  <q-select v-model="formData.centro" filled clearable use-input fill-input input-debounce="200" label="Centro de Investigación" :options="centrosOptions" option-label="name" option-value="_id" emit-value map-options placeholder="Seleccione centro" class="q-mt-md" :rules="[val => !!val || 'El centro es obligatorio']" @update:model-value="updateLocation" />
                 </div>
 
                 <!-- Columna derecha -->
                 <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="formData.descripcion"
-                    filled
-                    label="Descripción"
-                    placeholder="Describa el enfoque del grupo"
-                    type="textarea"
-                    rows="4"
-                    class="q-mt-md"
-                    :rules="[val => !!val || 'La descripción es obligatoria']"
-                  />
-                  
-                  <q-input
-                    v-model="formData.ciudad"
-                    filled
-                    label="Ciudad"
-                    placeholder="Ciudad del centro"
-                    class="q-mt-md"
-                    readonly
-                  />
-                  
-                  <q-input
-                    v-model="formData.departamento"
-                    filled
-                    label="Departamento"
-                    placeholder="Departamento del centro"
-                    class="q-mt-md"
-                    readonly
-                  />
+                  <q-input v-model="formData.descripcion" filled label="Descripción" placeholder="Describa el enfoque del grupo" type="textarea" rows="4" class="q-mt-md" :rules="[val => !!val || 'La descripción es obligatoria']" />
+                  <q-input v-model="formData.ciudad" filled label="Ciudad" placeholder="Ciudad del centro" class="q-mt-md" readonly />
+                  <q-input v-model="formData.departamento" filled label="Departamento" placeholder="Departamento del centro" class="q-mt-md" readonly />
                 </div>
               </div>
             </q-card-section>
 
             <q-card-actions align="right">
               <q-btn flat label="Cancelar" color="grey" @click="closeDialog" />
-              <q-btn 
-                :label="isEditMode ? 'Actualizar Grupo' : 'Crear Grupo'" 
-                color="primary" 
-                @click="onSubmitGrupo"
-                :loading="creating"
-              />
+              <q-btn :label="isEditMode ? 'Actualizar Grupo' : 'Crear Grupo'" color="primary" @click="onSubmitGrupo" :loading="creating" />
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -240,9 +195,10 @@
 
 <script setup>
 import Table from '../../components/table.vue'
+import ActionButtons from '../../components/ActionButtons.vue'
 import { ref, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { getData, postData, putData, deleteData } from '../../services/apiClient'
+import { getData, postData, putData } from '../../services/apiClient'
 
 const $q = useQuasar()
 
@@ -250,12 +206,13 @@ const $q = useQuasar()
 const loading = ref(false)
 const creating = ref(false)
 
-// Datos de grupos (se cargan desde el backend)
+// Datos de grupos
 const grupos = ref([])
 const gruposFiltrados = ref([])
 
 // Filtro
 const busqueda = ref('')
+const centroFiltro = ref('')
 
 // Modales y estados
 const showAddDialog = ref(false)
@@ -264,16 +221,11 @@ const showDetailDialog = ref(false)
 const selectedGrupo = ref(null)
 const editingGrupo = ref(null)
 
-// Referencia reactiva para el filtro de centro de investigación en la tabla
-const centroFiltro = ref('');
-
-// Función para limpiar el filtro de centros y aplicar nuevamente el filtrado
 const limpiarFiltroCentro = () => {
-  centroFiltro.value = '';
-  aplicarFiltro();
-};
+  centroFiltro.value = ''
+  aplicarFiltro()
+}
 
-// Datos del formulario
 const formData = ref({
   nombre: '',
   descripcion: '',
@@ -284,7 +236,6 @@ const formData = ref({
   departamento: ''
 })
 
-// Opciones para categorías
 const categoriaOptions = [
   { label: 'A1 - Reconocido Internacionalmente', value: 'A1' },
   { label: 'A - Reconocido Nacionalmente', value: 'A' },
@@ -292,85 +243,38 @@ const categoriaOptions = [
   { label: 'C - En Formación', value: 'C' }
 ]
 
-// Opciones para centros (se cargarán del backend)
 const centrosOptions = ref([])
 
-// Columnas para la tabla de grupos
 const columns = [
-  {
-    name: 'proyecto',
-    label: 'Grupo',
-    field: 'proyecto',
-    align: 'left',
-    sortable: false
-  },
-  {
-    name: 'investigadores',
-    label: 'Investigadores',
-    field: 'investigadores',
-    align: 'center',
-    sortable: false
-  },
-  {
-    name: 'categoria',
-    label: 'Categoría',
-    field: 'categoria',
-    align: 'center',
-    sortable: false
-  },
-  {
-    name: 'estado',
-    label: 'Estado',
-    field: 'estado',
-    align: 'center',
-    sortable: false
-  },
-  {
-    name: 'actions',
-    label: 'Ver Grupo',
-    field: 'actions',
-    align: 'center',
-    sortable: false
-  },
-  {
-    name: 'options',
-    label: 'Opciones',
-    field: 'options',
-    align: 'center',
-    sortable: false
-  }
+  { name: 'proyecto', label: 'Grupo', field: 'proyecto', align: 'left', sortable: false },
+  { name: 'investigadores', label: 'Investigadores', field: 'investigadores', align: 'center', sortable: false },
+  { name: 'categoria', label: 'Categoría', field: 'categoria', align: 'center', sortable: false },
+  { name: 'estado', label: 'Estado', field: 'estado', align: 'center', sortable: false },
+  { name: 'actions', label: 'Ver Grupo', field: 'actions', align: 'center', sortable: false },
+  { name: 'options', label: 'Opciones', field: 'options', align: 'center', sortable: false }
 ]
 
-// Función para cargar centros desde el backend
 const cargarCentros = async () => {
   try {
     const response = await getData('/research-centers/list')
     centrosOptions.value = response.msg || response.data || []
   } catch (error) {
     console.error('Error al cargar centros:', error)
-    // Centros de ejemplo en caso de error
     centrosOptions.value = [
-      {
-        _id: '68fffcd7a42032bc57fa3c65',
-        name: 'Centro de Pruebas SENA',
-        city: 'Bogotá',
-        department: 'Cundinamarca'
-      }
+      { _id: '68fffcd7a42032bc57fa3c65', name: 'Centro de Pruebas SENA', city: 'Bogotá', department: 'Cundinamarca' }
     ]
   }
 }
 
-// Función para cargar grupos desde el backend
 const cargarGrupos = async () => {
   try {
     loading.value = true
     const response = await getData('/research-groups/list')
-    
-    // Mapear los datos del backend al formato esperado por la tabla
+
     grupos.value = response.msg.map(grupo => ({
       id: grupo._id,
       proyecto: grupo.name,
-      investigadores: 0, // No viene en la respuesta, se puede agregar después
+      investigadores: 0,
       categoria: grupo.category,
       estado: grupo.status === 'Active' ? 'Activo' : 'Inactivo',
       descripcion: grupo.description,
@@ -380,49 +284,21 @@ const cargarGrupos = async () => {
       ciudad: grupo.id_center?.city || '',
       departamento: grupo.id_center?.department || '',
       fecha_creacion: new Date(grupo.createdAt).toLocaleDateString('es-CO'),
-      fecha_actualizacion: new Date(grupo.updatedAt).toLocaleDateString('es-CO')
+      fecha_actualizacion: new Date(grupo.updatedAt).toLocaleDateString('es-CO'),
+      options: 'options'
     }))
-    
-    $q.notify({
-      type: 'positive',
-      message: `${grupos.value.length} grupos cargados exitosamente`,
-      position: 'top',
-      timeout: 2000
-    })
+
+    $q.notify({ type: 'positive', message: `${grupos.value.length} grupos cargados exitosamente`, position: 'top', timeout: 2000 })
     aplicarFiltro()
-    
+
   } catch (error) {
     console.error('Error al cargar grupos:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar los grupos del servidor',
-      position: 'top',
-      timeout: 3000
-    })
-    
-    // Cargar datos de ejemplo en caso de error
+    $q.notify({ type: 'negative', message: 'Error al cargar los grupos del servidor', position: 'top', timeout: 3000 })
+
     grupos.value = [
-      {
-        id: 1,
-        proyecto: 'GRUPO DE INTELIGENCIA ARTIFICIAL',
-        investigadores: 15,
-        categoria: 'Agricultura',
-        estado: 'Activo'
-      },
-      {
-        id: 2,
-        proyecto: 'GRUPO DE BIOTECNOLOGÍA',
-        investigadores: 12,
-        categoria: 'Salud',
-        estado: 'Activo'
-      },
-      {
-        id: 3,
-        proyecto: 'GRUPO DE ENERGÍAS RENOVABLES',
-        investigadores: 8,
-        categoria: 'Ambiente',
-        estado: 'Inactivo'
-      }
+      { id: 1, proyecto: 'GRUPO DE INTELIGENCIA ARTIFICIAL', investigadores: 15, categoria: 'Agricultura', estado: 'Activo' },
+      { id: 2, proyecto: 'GRUPO DE BIOTECNOLOGÍA', investigadores: 12, categoria: 'Salud', estado: 'Activo' },
+      { id: 3, proyecto: 'GRUPO DE ENERGÍAS RENOVABLES', investigadores: 8, categoria: 'Ambiente', estado: 'Inactivo' }
     ]
     aplicarFiltro()
   } finally {
@@ -430,7 +306,6 @@ const cargarGrupos = async () => {
   }
 }
 
-// Aplicar filtros
 const aplicarFiltro = () => {
   let data = [...grupos.value]
   if (busqueda.value) {
@@ -454,24 +329,19 @@ const limpiarFiltros = () => {
 
 watch(busqueda, () => aplicarFiltro())
 
-// Handlers para los eventos de la tabla
 const handleAddGrupo = () => {
-  console.log('Agregar nuevo grupo')
   showAddDialog.value = true
-  cargarCentros() // Cargar centros al abrir el modal
+  cargarCentros()
 }
 
 const handleViewGrupo = (grupo) => {
-  console.log('Ver grupo:', grupo)
   selectedGrupo.value = grupo
   showDetailDialog.value = true
 }
 
 const handleEditGrupo = (grupo) => {
-  console.log('Editar grupo:', grupo)
   isEditMode.value = true
   editingGrupo.value = grupo
-  // Prefill formulario
   formData.value = {
     nombre: grupo.proyecto || '',
     descripcion: grupo.descripcion || '',
@@ -481,7 +351,6 @@ const handleEditGrupo = (grupo) => {
     ciudad: grupo.ciudad || '',
     departamento: grupo.departamento || ''
   }
-  // Asegurar opciones de centros disponibles para filtrar/buscar
   cargarCentros()
   showAddDialog.value = true
 }
@@ -493,51 +362,23 @@ const openEditFromDetail = () => {
 
 const handleActivateGrupo = async (grupo) => {
   try {
-    console.log('Activar grupo:', grupo)
     await putData(`/research-groups/activate/${grupo.id}`)
-    
-    // Actualizar estado local
     grupo.estado = 'Activo'
-    
-    $q.notify({
-      type: 'positive',
-      message: 'Grupo activado exitosamente',
-      position: 'top',
-      timeout: 3000
-    })
+    $q.notify({ type: 'positive', message: 'Grupo activado exitosamente', position: 'top', timeout: 3000 })
   } catch (error) {
     console.error('Error al activar grupo:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error al activar el grupo',
-      position: 'top',
-      timeout: 3000
-    })
+    $q.notify({ type: 'negative', message: 'Error al activar el grupo', position: 'top', timeout: 3000 })
   }
 }
 
 const handleDeactivateGrupo = async (grupo) => {
   try {
-    console.log('Desactivar grupo:', grupo)
     await putData(`/research-groups/inactivate/${grupo.id}`)
-    
-    // Actualizar estado local
     grupo.estado = 'Inactivo'
-    
-    $q.notify({
-      type: 'warning',
-      message: 'Grupo desactivado',
-      position: 'top',
-      timeout: 3000
-    })
+    $q.notify({ type: 'warning', message: 'Grupo desactivado', position: 'top', timeout: 3000 })
   } catch (error) {
     console.error('Error al desactivar grupo:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error al desactivar el grupo',
-      position: 'top',
-      timeout: 3000
-    })
+    $q.notify({ type: 'negative', message: 'Error al desactivar el grupo', position: 'top', timeout: 3000 })
   }
 }
 
@@ -549,7 +390,6 @@ const handleToggleStatus = (grupo) => {
   }
 }
 
-// Función para cerrar el modal y limpiar formulario
 const closeDialog = () => {
   showAddDialog.value = false
   isEditMode.value = false
@@ -565,7 +405,6 @@ const closeDialog = () => {
   }
 }
 
-// Función para actualizar ciudad y departamento cuando se selecciona un centro
 const updateLocation = () => {
   const centroSeleccionado = centrosOptions.value.find(c => c._id === formData.value.centro)
   if (centroSeleccionado) {
@@ -577,24 +416,16 @@ const updateLocation = () => {
   }
 }
 
-// Función para crear un nuevo grupo
 const handleCreateGrupo = async () => {
   try {
     creating.value = true
-    
-    // Validar campos requeridos
-    if (!formData.value.nombre || !formData.value.descripcion || !formData.value.categoria || 
+
+    if (!formData.value.nombre || !formData.value.descripcion || !formData.value.categoria ||
         !formData.value.registro_minciencias || !formData.value.centro) {
-      $q.notify({
-        type: 'negative',
-        message: 'Por favor complete todos los campos requeridos',
-        position: 'top',
-        timeout: 3000
-      })
+      $q.notify({ type: 'negative', message: 'Por favor complete todos los campos requeridos', position: 'top', timeout: 3000 })
       return
     }
-    
-    // Preparar datos para enviar al backend
+
     const grupoData = {
       name: formData.value.nombre,
       description: formData.value.descripcion,
@@ -602,33 +433,15 @@ const handleCreateGrupo = async () => {
       minciencias_registration: formData.value.registro_minciencias,
       id_center: formData.value.centro
     }
-    
-    console.log('Creando grupo:', grupoData)
-    
-    // Enviar al backend
-    const response = await postData('/research-groups/create', grupoData)
-    
-    $q.notify({
-      type: 'positive',
-      message: 'Grupo creado exitosamente',
-      position: 'top',
-      timeout: 3000
-    })
-    
-    // Cerrar modal y limpiar formulario
+
+    await postData('/research-groups/create', grupoData)
+    $q.notify({ type: 'positive', message: 'Grupo creado exitosamente', position: 'top', timeout: 3000 })
     closeDialog()
-    
-    // Recargar la lista de grupos
     await cargarGrupos()
-    
+
   } catch (error) {
     console.error('Error al crear grupo:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error al crear el grupo. Intente nuevamente.',
-      position: 'top',
-      timeout: 3000
-    })
+    $q.notify({ type: 'negative', message: 'Error al crear el grupo. Intente nuevamente.', position: 'top', timeout: 3000 })
   } finally {
     creating.value = false
   }
@@ -641,12 +454,13 @@ const handleUpdateGrupo = async () => {
       return
     }
     creating.value = true
-    // Validación básica
-    if (!formData.value.nombre || !formData.value.descripcion || !formData.value.categoria || 
+
+    if (!formData.value.nombre || !formData.value.descripcion || !formData.value.categoria ||
         !formData.value.registro_minciencias || !formData.value.centro) {
       $q.notify({ type: 'negative', message: 'Por favor complete todos los campos requeridos', position: 'top', timeout: 3000 })
       return
     }
+
     const grupoData = {
       name: formData.value.nombre,
       description: formData.value.descripcion,
@@ -654,11 +468,10 @@ const handleUpdateGrupo = async () => {
       minciencias_registration: formData.value.registro_minciencias,
       id_center: formData.value.centro
     }
-    console.log('Actualizar grupo:', grupoData)
+
     await putData(`/research-groups/update/${editingGrupo.value.id}`, grupoData)
     $q.notify({ type: 'positive', message: 'Grupo actualizado exitosamente', position: 'top', timeout: 3000 })
 
-    // Actualización optimista en memoria
     const idx = grupos.value.findIndex(g => g.id === editingGrupo.value.id)
     if (idx !== -1) {
       const updated = {
@@ -674,13 +487,11 @@ const handleUpdateGrupo = async () => {
         fecha_actualizacion: new Date().toLocaleDateString('es-CO')
       }
       grupos.value.splice(idx, 1, updated)
-      // Si detalle está abierto, sincronizar
       if (selectedGrupo.value && selectedGrupo.value.id === updated.id) {
         selectedGrupo.value = { ...updated }
       }
       aplicarFiltro()
     } else {
-      // Fallback: recargar si no encontramos el ítem
       await cargarGrupos()
     }
 
@@ -698,7 +509,6 @@ const onSubmitGrupo = () => {
   return handleCreateGrupo()
 }
 
-// Cargar grupos al montar el componente
 onMounted(() => {
   cargarGrupos()
 })
@@ -727,7 +537,15 @@ onMounted(() => {
   color: white;
 }
 
-/* Estilos para los inputs del modal */
+.text-primary {
+  color: #71277A !important;
+}
+
+.info-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
 .q-input :deep(.q-field__label) {
   color: #71277A;
   font-weight: 500;
@@ -756,4 +574,3 @@ onMounted(() => {
   border: 2px solid #71277A;
 }
 </style>
-
