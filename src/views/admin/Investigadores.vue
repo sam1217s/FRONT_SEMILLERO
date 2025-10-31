@@ -308,6 +308,13 @@ const cargarInvestigadores = async () => {
     loading.value = true
     const response = await getData('/researchers/list')
 
+    // Validar que la respuesta tenga datos
+    if (!response || !response.msg || !Array.isArray(response.msg)) {
+      console.warn('Respuesta vacía o formato incorrecto del backend:', response)
+      investigadores.value = []
+      return
+    }
+
     investigadores.value = response.msg.map(investigador => {
       let rolPrincipal = 'INVESTIGADOR'
 

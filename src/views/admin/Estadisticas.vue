@@ -147,12 +147,20 @@ const alertas = ref([])
 // Función para cargar estadísticas
 const cargarEstadisticas = async () => {
   try {
-    const response = await getData('/statistics/general')
+    // TODO: Endpoint /statistics/general no implementado en el backend aún
+    // Por ahora calculamos estadísticas básicas desde otros endpoints
+    const [researchers, groups, seedbeds, projects] = await Promise.all([
+      getData('/researchers/list').catch(() => ({ msg: [] })),
+      getData('/research-groups/list').catch(() => ({ msg: [] })),
+      getData('/seedbeds/list').catch(() => ({ msg: [] })),
+      getData('/projects/list').catch(() => ({ msg: [] }))
+    ])
+
     estadisticas.value = {
-      investigadoresActivos: response.msg?.investigadoresActivos || 0,
-      gruposActivos: response.msg?.gruposActivos || 0,
-      semillerosActivos: response.msg?.semillerosActivos || 0,
-      proyectosActivos: response.msg?.proyectosActivos || 0
+      investigadoresActivos: (researchers.msg || []).filter(r => r.status === 'Active' || r.status === 0).length,
+      gruposActivos: (groups.msg || []).filter(g => g.status === 'Active').length,
+      semillerosActivos: (seedbeds.msg || []).filter(s => s.status === 'Active').length,
+      proyectosActivos: (projects.msg || []).filter(p => p.status === 'Active').length
     }
   } catch (error) {
     console.error('Error al cargar estadísticas:', error)
@@ -163,11 +171,23 @@ const cargarEstadisticas = async () => {
 // Función para cargar alertas
 const cargarAlertas = async () => {
   try {
-    const response = await getData('/alerts/list')
-    alertas.value = response.msg || []
+    // TODO: Endpoint /alerts/list no implementado en el backend aún
+    // Por ahora generamos alertas básicas desde proyectos pendientes
+    const pendingProjects = await getData('/projects/list').catch(() => ({ msg: [] }))
+    const proyectosPendientes = (pendingProjects.msg || []).filter(p => p.approval_status === 'Pending')
+
+    alertas.value = []
+
+    if (proyectosPendientes.length > 0) {
+      alertas.value.push({
+        id: 1,
+        tipo: 'yellow',
+        mensaje: `${proyectosPendientes.length} proyecto${proyectosPendientes.length > 1 ? 's' : ''} requiere${proyectosPendientes.length > 1 ? 'n' : ''} aprobación`,
+        accion: 'ver_proyectos_pendientes'
+      })
+    }
   } catch (error) {
     console.error('Error al cargar alertas:', error)
-    $q.notify({ type: 'negative', message: 'Error al cargar alertas del servidor', position: 'top', timeout: 3000 })
     alertas.value = []
   }
 }

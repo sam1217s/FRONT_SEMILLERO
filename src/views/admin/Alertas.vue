@@ -149,8 +149,19 @@ const proyectosPendientes = ref([])
 // Cargar proyectos pendientes
 const cargarProyectosPendientes = async () => {
   try {
-    const response = await getData('/projects/pending')
-    proyectosPendientes.value = (response.msg || []).map(p => ({
+    // Usar /projects/list y filtrar los pendientes
+    const response = await getData('/projects/list')
+
+    if (!response || !response.msg || !Array.isArray(response.msg)) {
+      console.warn('Respuesta vacía o formato incorrecto del backend:', response)
+      proyectosPendientes.value = []
+      return
+    }
+
+    // Filtrar solo proyectos pendientes de aprobación
+    const proyectosPendientesData = response.msg.filter(p => p.approval_status === 'Pending')
+
+    proyectosPendientes.value = proyectosPendientesData.map(p => ({
       id: p._id,
       titulo: p.project_name,
       descripcion: p.description || 'Sin descripción',
