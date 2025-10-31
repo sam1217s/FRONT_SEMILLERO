@@ -3,8 +3,9 @@
     <div class="row q-col-gutter-md">
       <div class="col-12">
         <q-card class="shadow-1">
+          <!-- HEADER -->
           <q-card-section>
-            <div class="text-h6 text-weight-bold text-primary">
+            <div class="page-title">
               <q-icon name="science" class="q-mr-sm" />
               Proyectos
             </div>
@@ -13,323 +14,325 @@
             </div>
           </q-card-section>
 
+          <!-- TABLA -->
           <q-card-section>
-            <Table
-              :rows="tableRows"
-              :columns="columns"
-              title="PROYECTOS"
-              add-button-label="AGREGAR"
-              @add-item="openCreate"
-            >
-              <template #filters>
-                <div class="row q-gutter-sm items-center">
-                  <q-input
-                    v-model="search"
-                    dense
-                    outlined
-                    clearable
-                    placeholder="Buscar por nombre o código"
-                    @update:model-value="applyFilter"
-                    style="min-width: 240px"
-                  >
-                    <template #prepend>
-                      <q-icon name="search" />
-                    </template>
-                  </q-input>
-                  <q-select
-                    v-model="filtroEstado"
-                    :options="estadoOptions"
-                    option-label="label"
-                    option-value="value"
-                    emit-value
-                    map-options
-                    dense
-                    outlined
-                    clearable
-                    label="Estado"
-                    style="min-width: 160px"
-                    @update:model-value="applyFilter"
-                  />
-                </div>
-              </template>
+            <!-- FILTRO -->
+            <div class="row q-col-gutter-md q-mb-md">
+              <div class="col-12 col-md-6">
+                <q-input v-model="busqueda" filled clearable label="Buscar proyectos"
+                  placeholder="Buscar por nombre o código..." @clear="busqueda = ''">
+                  <template #prepend><q-icon name="search" /></template>
+                </q-input>
+              </div>
+              <div class="col-12 col-md-3">
+                <q-select v-model="filtroEstado" filled clearable label="Estado"
+                  :options="estadoOptions" option-label="label" option-value="value" emit-value map-options />
+              </div>
+            </div>
 
-              <template #cell-estado="{ value, row }">
-                <q-badge :color="row.status === 'Active' ? 'positive' : 'grey'" :label="value" />
-              </template>
+            <!-- LOADING -->
+            <div v-if="loading" class="text-center q-pa-xl">
+              <q-spinner-dots size="50px" color="primary" />
+              <div class="text-h6 text-grey-6 q-mt-md">Cargando proyectos...</div>
+            </div>
 
+            <!-- TABLA PRINCIPAL -->
+            <Table v-else :rows="rowsMostrados" :columns="columns" title="PROYECTOS"
+              add-button-label="AGREGAR PROYECTO" @add-item="showAddDialog = true">
               <template #options-column="{ row }">
-                <ActionButtons
-                  :row="row"
-                  :show-view="true"
-                  :show-edit="true"
-                  :show-toggle-status="true"
-                  view-tooltip="Ver detalle"
-                  edit-tooltip="Editar proyecto"
-                  @view="openDetail"
-                  @edit="openEdit"
-                  @toggle-status="handleToggleStatus"
-                />
+                <ActionButtons :row="row" :show-view="true" :show-edit="true" :show-toggle-status="true"
+                  view-tooltip="Ver detalle" edit-tooltip="Editar proyecto" activate-tooltip="Activar"
+                  deactivate-tooltip="Desactivar" @view="handleViewPerfil(row)" @edit="handleEditProyecto(row)"
+                  @toggle-status="handleToggleStatus(row)" />
               </template>
             </Table>
           </q-card-section>
         </q-card>
+
+        <!-- PERFIL -->
+        <q-dialog v-model="showProfileDialog">
+          <q-card style="min-width: 800px; max-width: 1000px">
+            <q-card-section class="modal-header">
+              <div class="text-h6">
+                <q-icon name="visibility" class="q-mr-sm" /> Detalle del Proyecto
+              </div>
+              <q-btn icon="close" flat round dense v-close-popup />
+            </q-card-section>
+
+            <q-card-section v-if="selectedProyecto">
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-md-6">
+                  <div class="text-h6 text-primary q-mb-md">Información Básica</div>
+                  <div class="info-item"><strong>Nombre:</strong> {{ selectedProyecto.project_name }}</div>
+                  <div class="info-item"><strong>Código:</strong> {{ selectedProyecto.code || 'Sin código' }}</div>
+                  <div class="info-item">
+                    <strong>Estado:</strong>
+                    <q-badge :color="selectedProyecto.status === 'Active' ? 'positive' : 'grey'"
+                      :label="selectedProyecto.status === 'Active' ? 'Activo' : 'Inactivo'" />
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="text-h6 text-primary q-mb-md">Fechas</div>
+                  <div class="info-item"><strong>Inicio:</strong> {{ formatDate(selectedProyecto.start_date) }}</div>
+                  <div class="info-item"><strong>Fin:</strong> {{ formatDate(selectedProyecto.end_date) }}</div>
+                  <div class="info-item"><strong>Investigadores:</strong> {{ selectedProyecto.num_researchers || 0 }}</div>
+                </div>
+
+                <div class="col-12">
+                  <div class="text-h6 text-primary q-mb-md">Descripción</div>
+                  <div class="info-item">{{ selectedProyecto.description || 'Sin descripción' }}</div>
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
+        </q-dialog>
+
+        <!-- CREAR / EDITAR -->
+        <q-dialog v-model="showAddDialog">
+          <q-card style="min-width: 800px; max-width: 900px">
+            <q-card-section class="modal-header">
+              <div class="text-h6">
+                {{ isEditMode ? "Editar Proyecto" : "Registrar Proyecto" }}
+              </div>
+              <q-btn icon="close" flat round dense v-close-popup />
+            </q-card-section>
+
+            <q-card-section>
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-md-6">
+                  <q-input v-model="formData.project_name" filled label="Nombre del proyecto" />
+                  <q-input v-model="formData.code" filled label="Código" class="q-mt-md" />
+                  <q-input v-model="formData.start_date" filled label="Fecha de inicio" type="date" class="q-mt-md" />
+                  <q-input v-model="formData.end_date" filled label="Fecha de fin" type="date" class="q-mt-md" />
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <q-input v-model="formData.description" filled label="Descripción" type="textarea" rows="9" />
+                </div>
+              </div>
+            </q-card-section>
+
+            <q-card-actions align="right">
+              <q-btn flat label="Cancelar" color="grey" @click="closeDialog" />
+              <q-btn :label="isEditMode ? 'Actualizar' : 'Registrar'" color="primary" @click="onSubmitProyecto" />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+
       </div>
     </div>
-
-    <!-- Detalle -->
-    <q-dialog v-model="showDetail">
-      <q-card style="min-width: 640px; max-width: 900px">
-        <q-card-section class="detail-header">
-          <div class="row items-center justify-between">
-            <div class="text-h6">Detalle del proyecto</div>
-            <q-badge :color="current?.status === 'Active' ? 'positive' : 'grey'">
-              {{ current?.status === 'Active' ? 'Activo' : 'Inactivo' }}
-            </q-badge>
-          </div>
-          <div class="text-caption">Información completa del proyecto</div>
-        </q-card-section>
-        <q-separator />
-        <q-card-section>
-          <div class="row q-col-gutter-lg">
-            <div class="col-12">
-              <div class="text-subtitle1 text-primary">{{ current?.project_name }}</div>
-            </div>
-            <div class="col-12 col-md-6">
-              <q-list dense separator>
-                <q-item>
-                  <q-item-section avatar><q-icon name="confirmation_number" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label caption>Código</q-item-label>
-                    <q-item-label>{{ current?.code || '-' }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section avatar><q-icon name="schedule" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label caption>Inicio</q-item-label>
-                    <q-item-label>{{ formatDate(current?.start_date) }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section avatar><q-icon name="event" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label caption>Fin</q-item-label>
-                    <q-item-label>{{ formatDate(current?.end_date) }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </div>
-            <div class="col-12 col-md-6">
-              <q-list dense separator>
-                <q-item>
-                  <q-item-section avatar><q-icon name="people" /></q-item-section>
-                  <q-item-section>
-                    <q-item-label caption>Investigadores</q-item-label>
-                    <q-item-label>{{ current?.num_researchers ?? '-' }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </div>
-            <div class="col-12">
-              <div class="text-subtitle2 q-mb-xs">Descripción</div>
-              <q-banner dense class="bg-grey-1 text-grey-8">{{ current?.description || '—' }}</q-banner>
-            </div>
-          </div>
-        </q-card-section>
-        <q-separator />
-        <q-card-actions align="right">
-          <q-btn flat label="Cerrar" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- Crear/Editar -->
-    <q-dialog v-model="showForm">
-      <q-card style="min-width: 720px; max-width: 900px">
-        <q-card-section class="detail-header">
-          <div class="text-h6">{{ isEdit ? 'Editar proyecto' : 'Nuevo proyecto' }}</div>
-          <div class="text-caption">Completa los campos y guarda los cambios</div>
-        </q-card-section>
-        <q-separator />
-        <q-card-section>
-          <q-form @submit.prevent="onSubmit">
-            <div class="row q-col-gutter-md">
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.project_name" label="Nombre" outlined dense :rules="[v => !!v || 'Obligatorio']" />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.code" label="Código" outlined dense />
-              </div>
-              <div class="col-12">
-                <div class="text-subtitle2 q-mb-xs">Descripción</div>
-                <q-input v-model="form.description" type="textarea" label="Descripción" outlined dense autogrow />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.start_date" label="Fecha inicio" outlined dense type="date" :rules="[v => !!v || 'Obligatorio']" />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.end_date" label="Fecha fin" outlined dense type="date" />
-              </div>
-            </div>
-            <div class="row justify-end q-gutter-sm q-mt-md">
-              <q-btn flat label="Cancelar" v-close-popup />
-              <q-btn color="primary" :label="isEdit ? 'Actualizar' : 'Crear'" type="submit" unelevated />
-            </div>
-          </q-form>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import Table from '../../components/table.vue'
-import ActionButtons from '../../components/ActionButtons.vue'
-import { getData, postData, putData } from '../../services/apiClient'
+import { ref, onMounted, computed } from "vue"
+import Table from "../../components/table.vue"
+import ActionButtons from "../../components/ActionButtons.vue"
+import { getData, postData, putData } from "../../services/apiClient"
+import { useNotifications } from "../../composables/useNotifications"
 
-const rows = ref([])
-const filteredRows = ref([])
-const search = ref('')
+const { error, info } = useNotifications()
+
+const loading = ref(false)
+const proyectos = ref([])
+const busqueda = ref("")
 const filtroEstado = ref(null)
-const showForm = ref(false)
-const isEdit = ref(false)
-const showDetail = ref(false)
-const current = ref(null)
-const form = ref({
-  _id: null,
-  project_name: '',
-  code: '',
-  description: '',
-  start_date: '',
-  end_date: ''
+const showAddDialog = ref(false)
+const showProfileDialog = ref(false)
+const isEditMode = ref(false)
+const selectedProyecto = ref(null)
+const editingProyecto = ref(null)
+
+const formData = ref({
+  project_name: "",
+  code: "",
+  description: "",
+  start_date: "",
+  end_date: "",
 })
 
-const columns = [
-  { name: 'nombre', required: true, label: 'Nombre del Proyecto', align: 'left', field: 'project_name', sortable: true },
-  { name: 'codigo', label: 'Código', align: 'center', field: 'code', sortable: true },
-  { name: 'estado', label: 'Estado', align: 'center', field: 'estado', sortable: true, format: v => v },
-  { name: 'fecha', label: 'Fecha de Inicio', align: 'center', field: 'start_date', sortable: true },
-  { name: 'options', label: 'Opciones', field: 'options', align: 'center', sortable: false }
-]
-
 const estadoOptions = [
-  { label: 'Activo', value: 'Active' },
-  { label: 'Inactivo', value: 'Inactive' }
+  { label: "Activo", value: "Active" },
+  { label: "Inactivo", value: "Inactive" }
 ]
 
-const tableRows = computed(() => {
-  return (filteredRows.value || []).map(p => ({
+// === FILTRO AUTOMÁTICO ===
+const rowsMostrados = computed(() => {
+  let filtrados = [...proyectos.value]
+
+  // Filtro por estado
+  if (filtroEstado.value) {
+    filtrados = filtrados.filter(p => p.status === filtroEstado.value)
+  }
+
+  // Filtro por búsqueda de texto
+  const term = busqueda.value?.toLowerCase().trim()
+  if (term) {
+    const campos = ["project_name", "code", "description"]
+    filtrados = filtrados.filter(p =>
+      campos.some(campo => {
+        const valor = p[campo]?.toString().toLowerCase()
+        return valor?.includes(term)
+      })
+    )
+  }
+
+  return filtrados.map(p => ({
     ...p,
-    id: p._id,
-    estado: p.status === 'Active' ? 'Activo' : 'Inactivo',
-    options: 'options'
+    estado: p.status === "Active" ? "Activo" : "Inactivo",
+    options: "options"
   }))
 })
 
-function formatDate(d) {
-  if (!d) return '-'
-  const date = new Date(d)
-  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('es-CO')
-}
-
-function toISODate(yyyyMMdd) {
-  if (!yyyyMMdd) return undefined
-  const d = new Date(yyyyMMdd)
-  return isNaN(d.getTime()) ? undefined : d.toISOString()
-}
-
-async function loadProjects() {
+// === CRUD ===
+// Cargar proyectos
+const cargarProyectos = async () => {
   try {
-    const { msg } = await getData('/projects/list')
-    rows.value = msg || []
-    applyFilter()
-  } catch (e) {
-    console.error(e)
+    loading.value = true
+    const res = await getData("/projects/list")
+    proyectos.value = Array.isArray(res?.msg) ? res.msg : []
+  } catch (err) {
+    console.error("Error al cargar proyectos:", err)
+    error("No se pudieron cargar los proyectos")
+  } finally {
+    loading.value = false
   }
 }
 
-function applyFilter() {
-  const term = (search.value || '').toLowerCase()
-  filteredRows.value = (rows.value || []).filter(p => {
-    const byText = term ? ((p.project_name || '').toLowerCase().includes(term) || (p.code || '').toLowerCase().includes(term)) : true
-    const byEstado = filtroEstado.value ? p.status === filtroEstado.value : true
-    return byText && byEstado
-  })
-}
-
-function openCreate() {
-  form.value = { _id: null, project_name: '', code: '', description: '', start_date: '', end_date: '' }
-  isEdit.value = false
-  showForm.value = true
-}
-
-function openEdit(row) {
-  isEdit.value = true
-  form.value = {
-    _id: row._id,
-    project_name: row.project_name || '',
-    code: row.code || '',
-    description: row.description || '',
-    start_date: row.start_date ? new Date(row.start_date).toISOString().slice(0, 10) : '',
-    end_date: row.end_date ? new Date(row.end_date).toISOString().slice(0, 10) : ''
-  }
-  showForm.value = true
-}
-
-function openDetail(row) {
-  current.value = row
-  showDetail.value = true
-}
-
-async function onSubmit() {
+// Registrar proyecto
+const registrarProyecto = async () => {
   try {
     const payload = {
-      project_name: form.value.project_name,
-      code: form.value.code || undefined,
-      description: form.value.description || undefined,
-      start_date: toISODate(form.value.start_date),
-      end_date: toISODate(form.value.end_date)
+      project_name: formData.value.project_name,
+      code: formData.value.code || undefined,
+      description: formData.value.description || undefined,
+      start_date: formData.value.start_date ? new Date(formData.value.start_date).toISOString() : undefined,
+      end_date: formData.value.end_date ? new Date(formData.value.end_date).toISOString() : undefined,
     }
-    if (isEdit.value && form.value._id) {
-      await putData(`/projects/update/${form.value._id}`, payload)
-    } else {
-      await postData('/projects/create', payload)
-    }
-    showForm.value = false
-    await loadProjects()
-  } catch (e) {
-    console.error(e)
+    await postData("/projects/create", payload)
+    await cargarProyectos()
+    info("Proyecto registrado correctamente")
+    closeDialog()
+  } catch (err) {
+    console.error("Error al registrar proyecto:", err)
+    error("No se pudo registrar el proyecto")
   }
 }
 
-async function handleToggleStatus(row) {
+// Actualizar proyecto
+const actualizarProyecto = async () => {
   try {
-    const isInactive = row.status === 'Inactive'
-    const endpoint = isInactive ? 'activate' : 'inactivate'
-    await putData(`/projects/${endpoint}/${row._id}`)
-    await loadProjects()
-  } catch (e) {
-    console.error(e)
+    const payload = {
+      project_name: formData.value.project_name,
+      code: formData.value.code || undefined,
+      description: formData.value.description || undefined,
+      start_date: formData.value.start_date ? new Date(formData.value.start_date).toISOString() : undefined,
+      end_date: formData.value.end_date ? new Date(formData.value.end_date).toISOString() : undefined,
+    }
+    await putData(`/projects/update/${editingProyecto.value._id}`, payload)
+    await cargarProyectos()
+    info("Proyecto actualizado correctamente")
+    closeDialog()
+  } catch (err) {
+    console.error("Error al actualizar proyecto:", err)
+    error("No se pudo actualizar el proyecto")
   }
+}
+
+// Activar / Desactivar proyecto
+const handleToggleStatus = async (proyecto) => {
+  try {
+    const endpoint = proyecto.status === 'Active' ? 'inactivate' : 'activate'
+    await putData(`/projects/${endpoint}/${proyecto._id}`)
+    await cargarProyectos()
+    info(`Proyecto ${endpoint === 'activate' ? 'activado' : 'desactivado'} correctamente`)
+  } catch {
+    error("No se pudo cambiar el estado del proyecto")
+  }
+}
+
+// === ACCIONES ===
+// Ver perfil
+const handleViewPerfil = (p) => {
+  selectedProyecto.value = p
+  showProfileDialog.value = true
+}
+
+// Editar proyecto
+const handleEditProyecto = (p) => {
+  isEditMode.value = true
+  editingProyecto.value = p
+  formData.value = {
+    project_name: p.project_name || "",
+    code: p.code || "",
+    description: p.description || "",
+    start_date: p.start_date ? new Date(p.start_date).toISOString().slice(0, 10) : "",
+    end_date: p.end_date ? new Date(p.end_date).toISOString().slice(0, 10) : "",
+  }
+  showAddDialog.value = true
+}
+
+// Cerrar modal
+const closeDialog = () => {
+  showAddDialog.value = false
+  isEditMode.value = false
+  editingProyecto.value = null
+  formData.value = {
+    project_name: "",
+    code: "",
+    description: "",
+    start_date: "",
+    end_date: "",
+  }
+}
+
+// Enviar formulario
+const onSubmitProyecto = () =>
+  isEditMode.value ? actualizarProyecto() : registrarProyecto()
+
+// === COLUMNAS ===
+const columns = [
+  { name: "project_name", label: "Nombre", field: "project_name", align: "left" },
+  { name: "code", label: "Código", field: "code", align: "center" },
+  { name: "estado", label: "Estado", field: "estado", align: "center" },
+  { name: "start_date", label: "Fecha Inicio", field: "start_date", align: "center", format: val => formatDate(val) },
+  { name: "options", label: "Opciones", field: "options", align: "center" },
+]
+
+// === HELPERS ===
+function formatDate(d) {
+  if (!d) return "-"
+  const date = new Date(d)
+  return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("es-CO")
 }
 
 onMounted(() => {
-  loadProjects()
+  cargarProyectos()
 })
 </script>
 
 <style scoped>
-.q-card {
-  border-radius: 12px;
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #71277A;
 }
 
-.detail-header {
-  background: linear-gradient(135deg, #71277A 0%, #5b1f62 100%);
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #71277A;
   color: white;
 }
 
 .text-primary {
   color: #71277A !important;
+}
+
+.info-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
 }
 </style>
