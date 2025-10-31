@@ -27,7 +27,6 @@
                   emit-value
                   map-options
                   clearable
-                  @update:model-value="aplicarFiltro"
                 />
               </div>
               <div class="col-12 col-md-8">
@@ -37,10 +36,8 @@
                   clearable
                   label="Buscar por nombre"
                   placeholder="Escriba para buscar..."
-                  @update:model-value="aplicarFiltro"
-                  @clear="limpiarFiltros"
                 >
-                  <template v-slot:prepend>
+                  <template #prepend>
                     <q-icon name="search" />
                   </template>
                 </q-input>
@@ -56,7 +53,7 @@
             <!-- Tabla de investigadores -->
             <Table
               v-else
-              :rows="investigadoresFiltrados"
+              :rows="rowsMostrados"
               :columns="columns"
               title="INVESTIGADORES"
               add-button-label="AGREGAR"
@@ -236,22 +233,16 @@
 import Table from '../../components/table.vue'
 import ActionButtons from '../../components/ActionButtons.vue'
 import { ref, onMounted, computed } from 'vue'
-import { useQuasar } from 'quasar'
 import { getData, postData, putData } from '../../services/apiClient'
 import { useAuthStore } from '../../stores/authStore.js'
+import { useNotifications } from '../../composables/useNotifications'
 
-const $q = useQuasar()
+const { error, info } = useNotifications()
 
-// Estado de carga
 const loading = ref(false)
-
-// Datos de investigadores
 const investigadores = ref([])
-const investigadoresFiltrados = ref([])
 const selectedInvestigador = ref(null)
 const showProfileDialog = ref(false)
-
-// Filtros
 const filtroRol = ref('leaders_investigators')
 const busqueda = ref('')
 
@@ -303,6 +294,42 @@ const columns = [
   { name: 'options', label: 'Opciones', field: 'options', align: 'center', sortable: false }
 ]
 
+// === FILTRO AUTOMÁTICO ===
+const rowsMostrados = computed(() => {
+  let filtrados = [...investigadores.value]
+
+  // Filtro por rol
+  if (filtroRol.value && filtroRol.value !== 'all') {
+    switch (filtroRol.value) {
+      case 'leaders_investigators':
+        filtrados = filtrados.filter(inv => inv.rol === 'LIDER' || inv.rol === 'INVESTIGADOR')
+        break
+      case 'leaders':
+        filtrados = filtrados.filter(inv => inv.rol === 'LIDER')
+        break
+      case 'investigators':
+        filtrados = filtrados.filter(inv => inv.rol === 'INVESTIGADOR')
+        break
+      case 'coordinators':
+        filtrados = filtrados.filter(inv => inv.rol === 'COORDINATOR')
+        break
+      case 'admins':
+        filtrados = filtrados.filter(inv => inv.rol === 'ADMIN')
+        break
+    }
+  }
+
+  // Filtro por búsqueda de texto
+  const term = busqueda.value?.toLowerCase().trim()
+  if (term) {
+    filtrados = filtrados.filter(inv => inv.nombre.toLowerCase().includes(term))
+  }
+
+  return filtrados
+})
+
+// === CRUD ===
+// Cargar investigadores
 const cargarInvestigadores = async () => {
   try {
     loading.value = true
@@ -358,66 +385,15 @@ const cargarInvestigadores = async () => {
         options: 'options'
       }
     })
-
-    $q.notify({
-      type: 'positive',
-      message: `${investigadores.value.length} investigadores cargados exitosamente`,
-      position: 'top',
-      timeout: 2000
-    })
-
-    aplicarFiltro()
-
-  } catch (error) {
-    console.error('Error al cargar investigadores:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar los investigadores del servidor',
-      position: 'top',
-      timeout: 3000
-    })
+  } catch (err) {
+    console.error('Error al cargar investigadores:', err)
+    error('No se pudieron cargar los investigadores')
   } finally {
     loading.value = false
   }
 }
 
-const aplicarFiltro = () => {
-  let filtrados = [...investigadores.value]
-
-  if (filtroRol.value && filtroRol.value !== 'all') {
-    switch (filtroRol.value) {
-      case 'leaders_investigators':
-        filtrados = filtrados.filter(inv => inv.rol === 'LIDER' || inv.rol === 'INVESTIGADOR')
-        break
-      case 'leaders':
-        filtrados = filtrados.filter(inv => inv.rol === 'LIDER')
-        break
-      case 'investigators':
-        filtrados = filtrados.filter(inv => inv.rol === 'INVESTIGADOR')
-        break
-      case 'coordinators':
-        filtrados = filtrados.filter(inv => inv.rol === 'COORDINATOR')
-        break
-      case 'admins':
-        filtrados = filtrados.filter(inv => inv.rol === 'ADMIN')
-        break
-    }
-  }
-
-  if (busqueda.value) {
-    const termino = busqueda.value.toLowerCase()
-    filtrados = filtrados.filter(inv => inv.nombre.toLowerCase().includes(termino))
-  }
-
-  investigadoresFiltrados.value = filtrados
-}
-
-const limpiarFiltros = () => {
-  filtroRol.value = 'leaders_investigators'
-  busqueda.value = ''
-  aplicarFiltro()
-}
-
+// === ACCIONES ===
 const handleAddInvestigador = () => {
   showAddDialog.value = true
 }
@@ -444,10 +420,11 @@ const closeDialog = () => {
   }
 }
 
-const handleRegistrarInvestigador = async () => {
+// Registrar investigador
+const registrarInvestigador = async () => {
   try {
     if (!formData.value.nombreCompleto || !formData.value.numeroDocumento || !formData.value.telefono) {
-      $q.notify({ type: 'negative', message: 'Por favor complete todos los campos requeridos', position: 'top', timeout: 3000 })
+      error('Por favor complete todos los campos requeridos')
       return
     }
 
@@ -478,20 +455,20 @@ const handleRegistrarInvestigador = async () => {
     }
 
     await postData('/researchers/create', investigadorData)
-    $q.notify({ type: 'positive', message: `${formData.value.asignarComoLider ? 'LIDER' : 'INVESTIGADOR'} registrado exitosamente`, position: 'top', timeout: 3000 })
-    closeDialog()
     await cargarInvestigadores()
-
-  } catch (error) {
-    console.error('Error al registrar investigador:', error)
-    $q.notify({ type: 'negative', message: 'Error al registrar el investigador. Intente nuevamente.', position: 'top', timeout: 3000 })
+    info('Investigador registrado correctamente')
+    closeDialog()
+  } catch (err) {
+    console.error('Error al registrar investigador:', err)
+    error('No se pudo registrar el investigador')
   }
 }
 
-const handleActualizarInvestigador = async () => {
+// Actualizar investigador
+const actualizarInvestigador = async () => {
   try {
     if (!formData.value.nombreCompleto || !formData.value.numeroDocumento || !formData.value.telefono) {
-      $q.notify({ type: 'negative', message: 'Por favor complete todos los campos requeridos', position: 'top', timeout: 3000 })
+      error('Por favor complete todos los campos requeridos')
       return
     }
 
@@ -520,13 +497,12 @@ const handleActualizarInvestigador = async () => {
     }
 
     await putData(`/researchers/update/${editingInvestigador.value.id}`, investigadorData)
-    $q.notify({ type: 'positive', message: `${formData.value.asignarComoLider ? 'LIDER' : 'INVESTIGADOR'} actualizado exitosamente`, position: 'top', timeout: 3000 })
-    closeDialog()
     await cargarInvestigadores()
-
-  } catch (error) {
-    console.error('Error al actualizar investigador:', error)
-    $q.notify({ type: 'negative', message: 'Error al actualizar el investigador. Intente nuevamente.', position: 'top', timeout: 3000 })
+    info('Investigador actualizado correctamente')
+    closeDialog()
+  } catch (err) {
+    console.error('Error al actualizar investigador:', err)
+    error('No se pudo actualizar el investigador')
   }
 }
 
@@ -557,33 +533,37 @@ const handleEditInvestigador = (investigador) => {
   showAddDialog.value = true
 }
 
+// Activar / Desactivar investigador
+const handleToggleStatus = async (investigador) => {
+  try {
+    const endpoint = investigador.estado === 'Activo' ? 'inactivate' : 'activate'
+    await putData(`/researchers/${endpoint}/${investigador.id}`)
+    await cargarInvestigadores()
+    info(`Investigador ${endpoint === 'activate' ? 'activado' : 'desactivado'} correctamente`)
+  } catch {
+    error('No se pudo cambiar el estado del investigador')
+  }
+}
+
 const handleActivateInvestigador = async (investigador) => {
   try {
     await putData(`/researchers/activate/${investigador.id}`)
-    investigador.estado = 'Activo'
-    $q.notify({ type: 'positive', message: `${investigador.rol} activado exitosamente`, position: 'top', timeout: 3000 })
-  } catch (error) {
-    console.error('Error al activar investigador:', error)
-    $q.notify({ type: 'negative', message: `Error al activar el ${investigador.rol}`, position: 'top', timeout: 3000 })
+    info('Investigador activado correctamente')
+    await cargarInvestigadores()
+  } catch (err) {
+    console.error('Error al activar investigador:', err)
+    error('No se pudo activar el investigador')
   }
 }
 
 const handleDeactivateInvestigador = async (investigador) => {
   try {
     await putData(`/researchers/inactivate/${investigador.id}`)
-    investigador.estado = 'Inactivo'
-    $q.notify({ type: 'warning', message: `${investigador.rol} desactivado`, position: 'top', timeout: 3000 })
-  } catch (error) {
-    console.error('Error al desactivar investigador:', error)
-    $q.notify({ type: 'negative', message: `Error al desactivar el ${investigador.rol}`, position: 'top', timeout: 3000 })
-  }
-}
-
-const handleToggleStatus = (investigador) => {
-  if (investigador.estado === 'Inactivo') {
-    handleActivateInvestigador(investigador)
-  } else {
-    handleDeactivateInvestigador(investigador)
+    info('Investigador desactivado correctamente')
+    await cargarInvestigadores()
+  } catch (err) {
+    console.error('Error al desactivar investigador:', err)
+    error('No se pudo desactivar el investigador')
   }
 }
 
@@ -600,13 +580,8 @@ onMounted(() => {
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.getUserRole === 'ADMIN')
 
-const onSubmitInvestigador = () => {
-  if (isEditMode.value) {
-    handleActualizarInvestigador()
-  } else {
-    handleRegistrarInvestigador()
-  }
-}
+const onSubmitInvestigador = () =>
+  isEditMode.value ? actualizarInvestigador() : registrarInvestigador()
 </script>
 
 <style scoped>
