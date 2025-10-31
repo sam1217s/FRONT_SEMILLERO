@@ -20,42 +20,22 @@
             <div class="text-center q-mb-lg">
               <q-icon name="account_circle" size="80px" class="login-icon" />
             </div>
-            
-            <q-select 
-              v-model="selectedRole" 
-              :options="roles" 
-              label="Rol" 
-              outlined 
-              class="q-mb-md login-input"
-            >
+
+            <q-select v-model="selectedRole" :options="roles" label="Rol" outlined class="q-mb-md login-input">
               <template v-slot:prepend>
                 <q-icon name="person" color="grey-6" />
               </template>
             </q-select>
-            
-            <q-input 
-              v-model="cedula" 
-              label="Cédula" 
-              outlined 
-              class="q-mb-md login-input" 
-              type="text"
-              :rules="cedulaRules"
-              lazy-rules
-            >
+
+            <q-input v-model="cedula" label="Cédula" outlined class="q-mb-md login-input" type="text"
+              :rules="cedulaRules" lazy-rules>
               <template v-slot:prepend>
                 <q-icon name="badge" color="grey-6" />
               </template>
             </q-input>
 
-            <q-input 
-              v-model="password" 
-              label="Contraseña" 
-              outlined 
-              class="q-mb-md login-input"
-              :type="isPwd ? 'password' : 'text'"
-              :rules="passwordRules"
-              lazy-rules
-            >
+            <q-input v-model="password" label="Contraseña" outlined class="q-mb-md login-input"
+              :type="isPwd ? 'password' : 'text'" :rules="passwordRules" lazy-rules>
               <template v-slot:prepend>
                 <q-icon name="lock" color="grey-6" />
               </template>
@@ -80,17 +60,8 @@
             </div>
 
             <div class="text-center">
-              <q-btn 
-                label="INGRESAR" 
-                color="primary" 
-                unelevated 
-                rounded 
-                padding="md xl"
-                class="text-weight-bold full-width login-button" 
-                @click="login"
-                :loading="loading"
-                :disable="loading"
-              />
+              <q-btn label="INGRESAR" color="primary" unelevated rounded padding="md xl"
+                class="text-weight-bold full-width login-button" @click="login" :loading="loading" :disable="loading" />
             </div>
           </q-card>
         </q-card>
@@ -104,6 +75,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import { useQuasar } from 'quasar'
+import { useNotifications } from '../composables/useNotifications'
+
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -113,6 +86,8 @@ const cedula = ref('')
 const password = ref('')
 const isPwd = ref(true)
 const selectedRole = ref('Seleccione su Rol')
+const { success, error, warning, info } = useNotifications()
+
 
 const roles = [
   'ADMINISTRADOR',
@@ -135,36 +110,20 @@ const passwordRules = [
 
 const login = async () => {
   errorMessage.value = ''
-  
+
   // Validaciones básicas
   if (!cedula.value) {
-    $q.notify({
-      type: 'negative',
-      message: 'Por favor ingresa tu cédula',
-      position: 'top',
-      timeout: 3000
-    })
+   info("Por favor ingresa tu cédula")
     return
   }
 
   if (!password.value) {
-    $q.notify({
-      type: 'negative',
-      message: 'Por favor ingresa tu contraseña',
-      position: 'top',
-      timeout: 3000
-    })
+    info("Por favor ingresa tu contraseña")
     return
   }
 
   if (selectedRole.value === 'Seleccione su Rol') {
-    $q.notify({
-      type: 'info',
-      message: 'Por favor selecciona un rol',
-      position: 'top',
-      timeout: 3000,
-      icon: 'info'
-    })
+    info("Por favor selecciona tu rol")
     return
   }
 
@@ -188,25 +147,28 @@ const login = async () => {
 
     if (!response.ok) {
       const errorData = await response.json()
-      throw new Error(errorData.msg || 'Credenciales incorrectas')
+      throw new Error(errorData.msg || 'Error en la autenticación')
     }
 
     const data = await response.json()
-    
-    // Extraer datos del usuario según el tipo de respuesta
-    let userData
-    if (data.researcher) {
-      userData = data.researcher
-    } else if (data.deputyDirector) {
-      userData = data.deputyDirector
+
+    let userData = data.researcher || data.deputyDirector
+
+    // 🔒 Validar coincidencia de roles seleccionados vs reales
+    const backendRole = (userData.role || '').toUpperCase()
+    const selected = (selectedRole.value || '').toUpperCase()
+
+    if (backendRole !== selected) {
+      info("rol no coincide con el seleccionado")
     }
+
 
     // Guardar token y datos del usuario en el store - orden correcto: (token, userData)
     authStore.setAuth(data.token, userData)
 
     // Redirigir según el rol del usuario
     let redirectRoute = '/app/inicio'
-    
+
     if (userData.role === 'ADMIN') {
       redirectRoute = '/app/admin/proyectos'
     } else if (userData.role === 'LEAD_RESEARCHER' || userData.role === 'LEADER' || userData.role === 'LIDER') {
@@ -220,15 +182,15 @@ const login = async () => {
     } else if (userData.role === 'SUPER') {
       redirectRoute = '/app/super/centros'
     }
-    
+
     console.log('Login exitoso, redirigiendo a:', redirectRoute)
     router.push(redirectRoute)
-    
+
   } catch (err) {
     console.error('Error en login:', err)
     const errorMsg = err.message || 'Error de conexión. Verifica que el servidor esté corriendo.'
     errorMessage.value = errorMsg
-    
+
     // Mostrar notificación de error
     $q.notify({
       type: 'negative',

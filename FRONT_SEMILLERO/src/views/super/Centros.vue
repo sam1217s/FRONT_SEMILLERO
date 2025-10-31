@@ -4,7 +4,7 @@
       <div class="col-12">
         <q-card class="shadow-1">
 
-          <!-- ENCABEZADO -->
+          <!-- HEADER -->
           <q-card-section>
             <div class="page-title">
               <q-icon name="business" class="q-mr-sm" />
@@ -17,21 +17,13 @@
 
           <!-- TABLA -->
           <q-card-section>
-            <!-- FILTROS -->
+            <!-- FILTRO -->
             <div class="row q-col-gutter-md q-mb-md">
               <div class="col-12 col-md-6">
-                <q-input
-                  v-model="busqueda"
-                  filled
-                  clearable
-                  label="Buscar centros"
-                  placeholder="Buscar por nombre, código o ciudad..."
-                  @update:model-value="aplicarFiltro"
-                  @clear="limpiarFiltros"
-                >
-                  <template #prepend>
-                    <q-icon name="search" />
-                  </template>
+                <q-input v-model="busqueda" filled clearable label="Buscar centros"
+                  placeholder="Buscar por nombre, código o ciudad..." @update:model-value="aplicarFiltro"
+                  @clear="limpiarFiltros">
+                  <template #prepend><q-icon name="search" /></template>
                 </q-input>
               </div>
             </div>
@@ -39,46 +31,28 @@
             <!-- LOADING -->
             <div v-if="loading" class="text-center q-pa-xl">
               <q-spinner-dots size="50px" color="primary" />
-              <div class="text-h6 text-grey-6 q-mt-md">
-                Cargando centros...
-              </div>
+              <div class="text-h6 text-grey-6 q-mt-md">Cargando centros...</div>
             </div>
 
             <!-- TABLA PRINCIPAL -->
-            <Table
-              v-else
-              :rows="centrosFiltrados"
-              :columns="columns"
-              title="CENTROS DE FORMACIÓN"
-              add-button-label="AGREGAR CENTRO"
-              @add-item="handleAddCentro"
-            >
+            <Table v-else :rows="centrosFiltrados" :columns="columns" title="CENTROS DE FORMACIÓN"
+              add-button-label="AGREGAR CENTRO" @add-item="showAddDialog = true">
               <template #options-column="{ row }">
-                <ActionButtons
-                  :row="row"
-                  :show-view="true"
-                  :show-edit="true"
-                  :show-toggle-status="true"
-                  view-tooltip="Ver detalle"
-                  edit-tooltip="Editar centro"
-                  activate-tooltip="Activar centro"
-                  deactivate-tooltip="Desactivar centro"
-                  @view="handleViewDetalle"
-                  @edit="handleEditCentro"
-                  @toggle-status="handleToggleStatus"
-                />
+                <ActionButtons :row="row" :show-view="true" :show-edit="true" :show-toggle-status="true"
+                  view-tooltip="Ver detalle" edit-tooltip="Editar centro" activate-tooltip="Activar centro"
+                  deactivate-tooltip="Desactivar centro" @view="handleViewDetalle(row)" @edit="handleEditCentro(row)"
+                  @toggle-status="handleToggleStatus(row)" />
               </template>
             </Table>
           </q-card-section>
         </q-card>
 
-        <!-- MODAL DETALLE -->
+        <!-- DETALLE -->
         <q-dialog v-model="showDetailDialog">
           <q-card style="min-width: 800px; max-width: 1000px">
             <q-card-section class="modal-header">
               <div class="text-h6">
-                <q-icon name="visibility" class="q-mr-sm" />
-                Detalle del Centro
+                <q-icon name="visibility" class="q-mr-sm" /> Detalle del Centro
               </div>
               <q-btn icon="close" flat round dense v-close-popup />
             </q-card-section>
@@ -86,29 +60,19 @@
             <q-card-section v-if="selectedCentro">
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-md-6">
-                  <div class="text-h6 text-primary q-mb-md">
-                    Información Básica
-                  </div>
-                  <div
-                    v-for="(info, index) in infoBasica"
-                    :key="index"
-                    class="info-item"
-                  >
-                    <strong>{{ info.label }}:</strong> {{ info.value }}
-                  </div>
+                  <div class="text-h6 text-primary q-mb-md">Información Básica</div>
+                  <div class="info-item"><strong>Nombre:</strong> {{ selectedCentro.nombre }}</div>
+                  <div class="info-item"><strong>Código:</strong> {{ selectedCentro.codigo }}</div>
+                  <div class="info-item"><strong>Ciudad:</strong> {{ selectedCentro.ciudad }}</div>
+                  <div class="info-item"><strong>Departamento:</strong> {{ selectedCentro.departamento }}</div>
+                  <div class="info-item"><strong>Capacidad:</strong> {{ selectedCentro.capacidad }} estudiantes</div>
                 </div>
 
                 <div class="col-12 col-md-6">
-                  <div class="text-h6 text-primary q-mb-md">
-                    Información de Contacto
-                  </div>
-                  <div
-                    v-for="(info, index) in infoContacto"
-                    :key="index"
-                    class="info-item"
-                  >
-                    <strong>{{ info.label }}:</strong> {{ info.value }}
-                  </div>
+                  <div class="text-h6 text-primary q-mb-md">Información de Contacto</div>
+                  <div class="info-item"><strong>Teléfono:</strong> {{ selectedCentro.telefono }}</div>
+                  <div class="info-item"><strong>Email:</strong> {{ selectedCentro.email }}</div>
+                  <div class="info-item"><strong>Dirección:</strong> {{ selectedCentro.direccion }}</div>
                 </div>
               </div>
 
@@ -122,7 +86,7 @@
           </q-card>
         </q-dialog>
 
-        <!-- MODAL CREAR / EDITAR -->
+        <!-- CREAR / EDITAR -->
         <q-dialog v-model="showAddDialog">
           <q-card style="min-width: 800px; max-width: 900px">
             <q-card-section class="modal-header">
@@ -135,31 +99,24 @@
             <q-card-section>
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-md-6">
-                  <q-input v-model="formData.nombre" filled label="Nombre" />
+                  <q-input v-model="formData.nombre" filled label="Nombre del centro" />
                   <q-input v-model="formData.codigo" filled label="Código" class="q-mt-md" />
                   <q-input v-model="formData.ciudad" filled label="Ciudad" class="q-mt-md" />
                   <q-input v-model="formData.capacidad" type="number" filled label="Capacidad" class="q-mt-md" />
                 </div>
+
                 <div class="col-12 col-md-6">
                   <q-input v-model="formData.telefono" filled label="Teléfono" />
-                  <q-input v-model="formData.email" filled label="Email" class="q-mt-md" />
+                  <q-input v-model="formData.email" filled label="Correo electrónico" class="q-mt-md" />
                   <q-input v-model="formData.direccion" filled label="Dirección" class="q-mt-md" />
                   <q-input v-model="formData.departamento" filled label="Departamento" class="q-mt-md" />
                 </div>
-              </div>
 
-              <div class="q-mt-md">
-                <q-input v-model="formData.descripcion" type="textarea" filled label="Descripción" rows="3" />
-              </div>
-
-              <div class="q-mt-md">
-                <q-checkbox
-                  v-model="formData.estado"
-                  :true-value="1"
-                  :false-value="0"
-                  color="primary"
-                  label="Centro activo"
-                />
+                <div class="col-12 q-mt-md">
+                  <q-input v-model="formData.descripcion" type="textarea" filled label="Descripción" rows="3" />
+                  <q-checkbox v-model="formData.estado" :true-value="1" :false-value="0" color="primary"
+                    label="Centro activo" class="q-mt-md" />
+                </div>
               </div>
             </q-card-section>
 
@@ -175,25 +132,24 @@
 </template>
 
 <script setup>
-import Table from "../../components/table.vue";
-import ActionButtons from "../../components/ActionButtons.vue";
-import { ref, onMounted, watch, computed } from "vue";
-import { getData, postData, putData } from "../../services/apiClient";
-import { useNotifications } from "../../composables/useNotifications";
+import { ref, onMounted } from "vue"
+import Table from "../../components/table.vue"
+import ActionButtons from "../../components/ActionButtons.vue"
+import { getData, postData, putData } from "../../services/apiClient"
+import { useNotifications } from "../../composables/useNotifications"
 
-const { error, info } = useNotifications();
+const { error, info } = useNotifications()
 
-const loading = ref(false);
-const centros = ref([]);
-const centrosFiltrados = ref([]);
-const busqueda = ref("");
-const showAddDialog = ref(false);
-const showDetailDialog = ref(false);
-const isEditMode = ref(false);
-const selectedCentro = ref(null);
-const editingCentro = ref(null);
+const loading = ref(false)
+const centros = ref([])
+const centrosFiltrados = ref([])
+const busqueda = ref("")
+const showAddDialog = ref(false)
+const showDetailDialog = ref(false)
+const isEditMode = ref(false)
+const selectedCentro = ref(null)
+const editingCentro = ref(null)
 
-// FORMULARIO
 const formData = ref({
   nombre: "",
   codigo: "",
@@ -204,112 +160,80 @@ const formData = ref({
   departamento: "",
   capacidad: "",
   descripcion: "",
-  estado: 1,
-});
+  estado: 1
+})
 
-// COLUMNAS
-const columns = [
-  { name: "nombre", label: "Nombre", field: "nombre", align: "left" },
-  { name: "codigo", label: "Código", field: "codigo", align: "center" },
-  { name: "ciudad", label: "Ciudad", field: "ciudad", align: "center" },
-  { name: "capacidad", label: "Capacidad", field: "capacidad", align: "center" },
-  {
-    name: "estado",
-    label: "Estado",
-    field: "estado",
-    align: "center",
-    format: (val) => (val === 1 ? "Activo" : "Inactivo"),
-  },
-  { name: "options", label: "Opciones", field: "options", align: "center" },
-];
-
-// CRUD
+// === CRUD ===
 const cargarCentros = async () => {
   try {
-    loading.value = true;
-    const res = await getData("/training-centers/list");
-    centros.value = res.msg.map((c) => ({
-      id: c._id,
-      nombre: c.name,
-      codigo: c.code,
-      ciudad: c.city,
-      capacidad: c.student_capacity,
-      estado: Number(c.status) === 1 ? 1 : 0,
-      telefono: c.phone,
-      email: c.email,
-      direccion: c.address,
-      departamento: c.department,
-      descripcion: c.description,
-    }));
-    aplicarFiltro();
-  } catch {
-    error("Error al cargar centros de formación");
+    loading.value = true
+    const res = await getData("/training-centers/list")
+    centros.value = Array.isArray(res?.data) ? res.data : []
+  } catch (err) {
+    console.error("Error al cargar centros:", err)
+    error("No se pudieron cargar los centros de formación")
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
-const handleAddCentro = () => (showAddDialog.value = true);
-const handleViewDetalle = (c) => {
-  selectedCentro.value = c;
-  showDetailDialog.value = true;
-};
-const handleEditCentro = (c) => {
-  isEditMode.value = true;
-  editingCentro.value = c;
-  formData.value = { ...c };
-  showAddDialog.value = true;
-};
 
-// Activar / Desactivar Centro
-const handleToggleStatus = async (c) => {
+const registrarCentro = async () => {
   try {
-    const endpoint = c.estado === 1
-      ? `/training-centers/inactivate/${c.id}`
-      : `/training-centers/activate/${c.id}`;
-
-    await putData(endpoint);
-    info(`Centro ${c.estado === 1 ? "desactivado" : "activado"} correctamente`);
-    await cargarCentros();
-  } catch {
-    error("No se pudo cambiar el estado del centro");
+    await postData("/training-centers/create", formData.value)
+    await cargarCentros()
+    info("Centro registrado correctamente")
+    closeDialog()
+  } catch (err) {
+    console.error("Error al registrar centro:", err)
+    error("No se pudo registrar el centro")
   }
-};
+}
 
-
-// Guardar
-const onSubmitCentro = async () => {
-  const data = {
-    name: formData.value.nombre,
-    code: formData.value.codigo,
-    city: formData.value.ciudad,
-    phone: formData.value.telefono,
-    email: formData.value.email,
-    address: formData.value.direccion,
-    department: formData.value.departamento,
-    student_capacity: parseInt(formData.value.capacidad) || 0,
-    description: formData.value.descripcion,
-    status: formData.value.estado,
-  };
+const actualizarCentro = async () => {
   try {
-    if (isEditMode.value) {
-      await putData(`/training-centers/update/${editingCentro.value.id}`, data);
-      info("Centro actualizado correctamente");
-    } else {
-      await postData("/training-centers/create", data);
-      info("Centro registrado correctamente");
-    }
-    closeDialog();
-    await cargarCentros();
-  } catch {
-    error("Error al guardar el centro");
+    await putData(`/training-centers/update/${editingCentro.value.id}`, formData.value)
+    await cargarCentros()
+    info("Centro actualizado correctamente")
+    closeDialog()
+  } catch (err) {
+    console.error("Error al actualizar centro:", err)
+    error("No se pudo actualizar el centro")
   }
-};
+}
+
+const handleToggleStatus = async centro => {
+  try {
+    const endpoint =
+      centro.estado === 1
+        ? `/training-centers/inactivate/${centro.id}`
+        : `/training-centers/activate/${centro.id}`
+    await putData(endpoint)
+    await cargarCentros()
+    info(`Centro ${centro.estado === 1 ? "desactivado" : "activado"} correctamente`)
+  } catch (err) {
+    console.error("Error al cambiar estado:", err)
+    error("No se pudo cambiar el estado del centro")
+  }
+}
+
+// === ACCIONES ===
+const handleViewDetalle = c => {
+  selectedCentro.value = c
+  showDetailDialog.value = true
+}
+
+const handleEditCentro = c => {
+  isEditMode.value = true
+  editingCentro.value = c
+  formData.value = { ...c }
+  showAddDialog.value = true
+}
 
 const closeDialog = () => {
-  showAddDialog.value = false;
-  isEditMode.value = false;
-  editingCentro.value = null;
+  showAddDialog.value = false
+  isEditMode.value = false
+  editingCentro.value = null
   formData.value = {
     nombre: "",
     codigo: "",
@@ -320,58 +244,69 @@ const closeDialog = () => {
     departamento: "",
     capacidad: "",
     descripcion: "",
-    estado: 1,
-  };
-};
+    estado: 1
+  }
+}
 
-// FILTROS
+// === ENVÍO ===
+const onSubmitCentro = () =>
+  isEditMode.value ? actualizarCentro() : registrarCentro()
+
+// === FILTROS ===
 const aplicarFiltro = () => {
-  const term = busqueda.value.toLowerCase();
+  const term = busqueda.value?.toLowerCase().trim() || ""
   centrosFiltrados.value = term
-    ? centros.value.filter((c) =>
-        [c.nombre, c.codigo, c.ciudad].some((f) => f?.toLowerCase().includes(term))
+    ? centros.value.filter(c =>
+      [c.nombre, c.codigo, c.ciudad].some(f =>
+        f?.toLowerCase().includes(term)
       )
-    : centros.value;
-};
-const limpiarFiltros = () => ((busqueda.value = ""), aplicarFiltro());
-watch(busqueda, aplicarFiltro);
+    )
+    : centros.value
+}
 
-// INFO DETALLE
-const infoBasica = computed(() => [
-  { label: "Nombre", value: selectedCentro.value?.nombre },
-  { label: "Código", value: selectedCentro.value?.codigo },
-  { label: "Ciudad", value: selectedCentro.value?.ciudad },
-  { label: "Departamento", value: selectedCentro.value?.departamento },
-  { label: "Capacidad", value: `${selectedCentro.value?.capacidad} estudiantes` },
-]);
-const infoContacto = computed(() => [
-  { label: "Teléfono", value: selectedCentro.value?.telefono || "No especificado" },
-  { label: "Email", value: selectedCentro.value?.email || "No especificado" },
-  { label: "Dirección", value: selectedCentro.value?.direccion || "No especificada" },
-]);
+const limpiarFiltros = () => {
+  busqueda.value = ""
+  aplicarFiltro()
+}
 
-onMounted(cargarCentros);
+// === COLUMNAS ===
+const columns = [
+  { name: "nombre", label: "Nombre", field: "nombre", align: "left" },
+  { name: "codigo", label: "Código", field: "codigo", align: "center" },
+  { name: "ciudad", label: "Ciudad", field: "ciudad", align: "center" },
+  { name: "capacidad", label: "Capacidad", field: "capacidad", align: "center" },
+  { name: "estado", label: "Estado", field: "estado", align: "center", format: val => val === 1 ? "Activo" : "Inactivo" },
+  { name: "options", label: "Opciones", field: "options", align: "center" }
+]
+
+onMounted(cargarCentros)
 </script>
 
 <style scoped>
 .page-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #71277a;
+  color: #71277A;
 }
+
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #71277a;
+  background: #71277A;
   color: white;
 }
+
+.text-primary {
+  color: #71277A !important;
+}
+
 .info-item {
   padding: 8px 0;
   border-bottom: 1px solid #f0f0f0;
 }
+
 .info-item strong {
-  color: #71277a;
-  font-weight: 600;
+  color: #71277A;
 }
 </style>

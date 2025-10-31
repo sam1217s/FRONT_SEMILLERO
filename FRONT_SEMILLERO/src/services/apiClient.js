@@ -1,12 +1,10 @@
 import { apiClient } from '../plugins/pluginAxios.js'
-import { useAuthStore } from '../stores/authStore'
-
 export { apiClient }
 
-// GET - Obtener datos
-export async function getData(url, config = {}) {
+// GET
+export async function getData(url) {
   try {
-    const response = await apiClient.get(url, config)
+    const response = await apiClient.get(url)
     return response.data
   } catch (error) {
     console.error('Error en GET:', error)
@@ -14,10 +12,10 @@ export async function getData(url, config = {}) {
   }
 }
 
-// POST - Crear datos
-export async function postData(url, data, config = {}) {
+// POST
+export async function postData(url, data) {
   try {
-    const response = await apiClient.post(url, data, config)
+    const response = await apiClient.post(url, data)
     return response.data
   } catch (error) {
     console.error('Error en POST:', error)
@@ -25,10 +23,10 @@ export async function postData(url, data, config = {}) {
   }
 }
 
-// PUT - Actualizar datos
-export async function putData(url, data, config = {}) {
+// PUT
+export async function putData(url, data) {
   try {
-    const response = await apiClient.put(url, data, config)
+    const response = await apiClient.put(url, data)
     return response.data
   } catch (error) {
     console.error('Error en PUT:', error)
@@ -36,23 +34,13 @@ export async function putData(url, data, config = {}) {
   }
 }
 
-// DELETE - Eliminar datos
-export async function deleteData(url, config = {}) {
+// DELETE
+export async function deleteData(url) {
   try {
-    const response = await apiClient.delete(url, config)
+    const response = await apiClient.delete(url)
     return response.data
   } catch (error) {
     console.error('Error en DELETE:', error)
     throw error
-  }
-}
-
-// Función auxiliar para verificar si el usuario está autenticado
-export function isAuthenticated() {
-  try {
-    const authStore = useAuthStore()
-    return authStore.getIsAuthenticated()
-  } catch (error) {
-    return false
   }
 }
