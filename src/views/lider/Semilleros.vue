@@ -14,15 +14,12 @@
           </q-card-section>
           
           <q-card-section>
-            <TableLider 
-              :rows="semilleros" 
+            <Table
+              :rows="semilleros"
               :columns="tableColumns"
               title="SEMILLEROS"
               add-button-label="AGREGAR"
               @add-item="openCreate"
-              @view-item="openDetail"
-              @edit-item="handleEditSemillero"
-              @toggle-status="handleToggleStatus"
             >
               <template #filters>
                 <div class="row q-gutter-sm items-center">
@@ -69,7 +66,21 @@
                   />
                 </div>
               </template>
-            </TableLider>
+
+              <template #options-column="{ row }">
+                <ActionButtons
+                  :row="row"
+                  :show-view="true"
+                  :show-edit="true"
+                  :show-toggle-status="true"
+                  view-tooltip="Ver detalle"
+                  edit-tooltip="Editar semillero"
+                  @view="openDetail"
+                  @edit="handleEditSemillero"
+                  @toggle-status="handleToggleStatus"
+                />
+              </template>
+            </Table>
           </q-card-section>
         </q-card>
       </div>
@@ -250,7 +261,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import TableLider from '../../components/tableLider.vue'
+import Table from '../../components/table.vue'
+import ActionButtons from '../../components/ActionButtons.vue'
 import { getData, postData, putData } from '../../services/apiClient.js'
 
 const $q = useQuasar()

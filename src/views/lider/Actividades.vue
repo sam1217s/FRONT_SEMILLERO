@@ -19,8 +19,8 @@
           <q-separator />
           
           <q-card-section>
-            <TableLider title="ACTIVIDADES" addButtonLabel="NUEVA ACTIVIDAD" :rows="tableRows" :columns="tableColumns"
-              @add-item="openCreate" @view-item="openDetail" @edit-item="openEdit" @toggle-status="handleToggleStatus">
+            <Table title="ACTIVIDADES" addButtonLabel="NUEVA ACTIVIDAD" :rows="tableRows" :columns="tableColumns"
+              @add-item="openCreate">
               <template #filters>
                 <div class="row q-gutter-sm items-center">
                   <q-input v-model="search" dense outlined placeholder="Buscar por nombre"
@@ -43,7 +43,21 @@
                     style="min-width: 200px;" @update:model-value="applyFilter" />
               </div>
               </template>
-            </TableLider>
+
+              <template #options-column="{ row }">
+                <ActionButtons
+                  :row="row"
+                  :show-view="true"
+                  :show-edit="true"
+                  :show-toggle-status="true"
+                  view-tooltip="Ver detalle"
+                  edit-tooltip="Editar actividad"
+                  @view="openDetail"
+                  @edit="openEdit"
+                  @toggle-status="handleToggleStatus"
+                />
+              </template>
+            </Table>
           </q-card-section>
         </q-card>
       </div>
@@ -205,7 +219,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { getData, postData, putData } from '../../services/apiClient'
-import TableLider from '../../components/tableLider.vue'
+import Table from '../../components/table.vue'
+import ActionButtons from '../../components/ActionButtons.vue'
 
 const $q = useQuasar()
 

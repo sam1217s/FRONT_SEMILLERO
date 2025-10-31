@@ -14,14 +14,12 @@
           </q-card-section>
           
           <q-card-section>
-            <TableLider 
-              :rows="tableRows" 
+            <Table
+              :rows="tableRows"
               :columns="columns"
               title="REUNIONES"
               add-button-label="NUEVA REUNIÓN"
               @add-item="openCreate"
-              @view-item="openDetail"
-              @edit-item="openEdit"
             >
               <template #filters>
                 <div class="row q-gutter-sm items-center">
@@ -39,7 +37,19 @@
                     @update:model-value="applyFilter" />
                 </div>
               </template>
-            </TableLider>
+
+              <template #options-column="{ row }">
+                <ActionButtons
+                  :row="row"
+                  :show-view="true"
+                  :show-edit="true"
+                  view-tooltip="Ver detalle"
+                  edit-tooltip="Editar reunión"
+                  @view="openDetail"
+                  @edit="openEdit"
+                />
+              </template>
+            </Table>
           </q-card-section>
         </q-card>
       </div>
@@ -167,7 +177,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import TableLider from '../../components/tableLider.vue'
+import Table from '../../components/table.vue'
+import ActionButtons from '../../components/ActionButtons.vue'
 import { getData, postData, putData } from '../../services/apiClient'
 
 const rows = ref([])
