@@ -53,7 +53,7 @@
             <!-- Tabla de investigadores -->
             <Table
               v-else
-              :rows="rowsMostrados"
+              :rows="filtradatos"
               :columns="columns"
               title="INVESTIGADORES"
               add-button-label="AGREGAR"
@@ -76,7 +76,7 @@
                   edit-tooltip="Editar"
                   :activate-tooltip="row.estado === 'Inactivo' ? 'Activar' : 'Desactivar'"
                   :deactivate-tooltip="row.estado === 'Inactivo' ? 'Activar' : 'Desactivar'"
-                  @view="handleViewPerfil"
+                  @view="handleViewDetalle"
                   @edit="handleEditInvestigador"
                   @toggle-status="handleToggleStatus"
                 />
@@ -86,7 +86,7 @@
         </q-card>
 
         <!-- Modal: Ver Perfil del Investigador -->
-        <q-dialog v-model="showProfileDialog">
+        <q-dialog v-model="showDetailDialog">
           <q-card style="min-width: 800px; max-width: 1000px">
             <q-card-section class="modal-header">
               <div class="text-h6">
@@ -242,7 +242,7 @@ const { error, info } = useNotifications()
 const loading = ref(false)
 const investigadores = ref([])
 const selectedInvestigador = ref(null)
-const showProfileDialog = ref(false)
+const showDetailDialog = ref(false)
 const filtroRol = ref('leaders_investigators')
 const busqueda = ref('')
 
@@ -295,7 +295,7 @@ const columns = [
 ]
 
 // === FILTRO AUTOMÁTICO ===
-const rowsMostrados = computed(() => {
+const filtradatos = computed(() => {
   let filtrados = [...investigadores.value]
 
   // Filtro por rol
@@ -506,9 +506,9 @@ const actualizarInvestigador = async () => {
   }
 }
 
-const handleViewPerfil = (investigador) => {
+const handleViewDetalle = (investigador) => {
   selectedInvestigador.value = investigador
-  showProfileDialog.value = true
+  showDetailDialog.value = true
 }
 
 const handleEditInvestigador = (investigador) => {
@@ -569,7 +569,7 @@ const handleDeactivateInvestigador = async (investigador) => {
 
 const openEditFromDetail = () => {
   if (!selectedInvestigador.value) return
-  showProfileDialog.value = false
+  showDetailDialog.value = false
   handleEditInvestigador(selectedInvestigador.value)
 }
 

@@ -37,12 +37,12 @@
             </div>
 
             <!-- TABLA PRINCIPAL -->
-            <Table v-else :rows="rowsMostrados" :columns="columns" title="PROYECTOS"
+            <Table v-else :rows="filtradatos" :columns="columns" title="PROYECTOS"
               add-button-label="AGREGAR PROYECTO" @add-item="showAddDialog = true">
               <template #options-column="{ row }">
                 <ActionButtons :row="row" :show-view="true" :show-edit="true" :show-toggle-status="true"
                   view-tooltip="Ver detalle" edit-tooltip="Editar proyecto" activate-tooltip="Activar"
-                  deactivate-tooltip="Desactivar" @view="handleViewPerfil(row)" @edit="handleEditProyecto(row)"
+                  deactivate-tooltip="Desactivar" @view="handleViewDetalle(row)" @edit="handleEditProyecto(row)"
                   @toggle-status="handleToggleStatus(row)" />
               </template>
             </Table>
@@ -50,7 +50,7 @@
         </q-card>
 
         <!-- PERFIL -->
-        <q-dialog v-model="showProfileDialog">
+        <q-dialog v-model="showDetailDialog">
           <q-card style="min-width: 800px; max-width: 1000px">
             <q-card-section class="modal-header">
               <div class="text-h6">
@@ -139,7 +139,7 @@ const proyectos = ref([])
 const busqueda = ref("")
 const filtroEstado = ref(null)
 const showAddDialog = ref(false)
-const showProfileDialog = ref(false)
+const showDetailDialog = ref(false)
 const isEditMode = ref(false)
 const selectedProyecto = ref(null)
 const editingProyecto = ref(null)
@@ -158,7 +158,7 @@ const estadoOptions = [
 ]
 
 // === FILTRO AUTOMÁTICO ===
-const rowsMostrados = computed(() => {
+const filtradatos = computed(() => {
   let filtrados = [...proyectos.value]
 
   // Filtro por estado
@@ -254,9 +254,9 @@ const handleToggleStatus = async (proyecto) => {
 
 // === ACCIONES ===
 // Ver perfil
-const handleViewPerfil = (p) => {
+const handleViewDetalle = (p) => {
   selectedProyecto.value = p
-  showProfileDialog.value = true
+  showDetailDialog.value = true
 }
 
 // Editar proyecto
