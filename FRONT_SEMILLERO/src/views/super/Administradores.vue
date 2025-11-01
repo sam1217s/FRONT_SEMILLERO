@@ -53,7 +53,7 @@
         </q-card>
 
         <!-- PERFIL -->
-        <q-dialog v-model="showProfileDialog">
+        <q-dialog v-model="showDetailDialog">
           <q-card style="min-width: 800px; max-width: 1000px">
             <q-card-section class="modal-header">
               <div class="text-h6">
@@ -155,7 +155,7 @@ const loading = ref(false)
 const administradores = ref([])
 const busqueda = ref("")
 const showAddDialog = ref(false)
-const showProfileDialog = ref(false)
+const showDetailDialog = ref(false)
 const isEditMode = ref(false)
 const selectedAdministrador = ref(null)
 const editingAdministrador = ref(null)
@@ -269,7 +269,7 @@ const filtradatos= computed(()=>{
 // Ver perfil
 const handleViewPerfil = (a) => {
   selectedAdministrador.value = a
-  showProfileDialog.value = true
+  showDetailDialog.value = true
 }
 
 // Editar administrador

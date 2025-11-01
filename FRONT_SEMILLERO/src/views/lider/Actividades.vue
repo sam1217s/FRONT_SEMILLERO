@@ -54,7 +54,7 @@
             </div>
 
             <!-- TABLA PRINCIPAL -->
-            <Table v-else :rows="rowsMostrados" :columns="tableColumns" title="ACTIVIDADES"
+            <Table v-else :rows="filtradatos" :columns="tableColumns" title="ACTIVIDADES"
               add-button-label="NUEVA ACTIVIDAD" @add-item="openCreate">
               <template #options-column="{ row }">
                 <ActionButtons
@@ -77,7 +77,7 @@
       </div>
     </div>
     <!-- PERFIL -->
-    <q-dialog v-model="showDetail">
+    <q-dialog v-model="showDetailDialog">
       <q-card style="min-width: 800px; max-width: 1000px">
         <q-card-section class="modal-header">
           <div class="text-h6">
@@ -191,7 +191,7 @@ const filtroProyecto = ref(null)
 const filtroInvestigador = ref(null)
 const showForm = ref(false)
 const isEdit = ref(false)
-const showDetail = ref(false)
+const showDetailDialog = ref(false)
 const current = ref(null)
 
 const formData = ref({
@@ -227,7 +227,7 @@ const priorityOptions = [
 ]
 
 // === FILTRO AUTOMÁTICO ===
-const rowsMostrados = computed(() => {
+const filtradatos = computed(() => {
   let filtrados = [...actividades.value]
 
   // Filtro por estado
@@ -484,7 +484,7 @@ const openEdit = (row) => {
 
 const openDetail = (row) => {
   current.value = row
-  showDetail.value = true
+  showDetailDialog.value = true
 }
 
 const closeDialog = () => {

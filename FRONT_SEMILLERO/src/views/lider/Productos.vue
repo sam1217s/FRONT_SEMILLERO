@@ -63,7 +63,7 @@
                   edit-tooltip="Editar producto"
                   activate-tooltip="Activar"
                   deactivate-tooltip="Desactivar"
-                  @view="handleViewPerfil"
+                  @view="handleViewDetalle"
                   @edit="handleEditProducto"
                   @toggle-status="handleToggleStatus"
                 />
@@ -73,7 +73,7 @@
         </q-card>
 
         <!-- MODAL PERFIL -->
-        <q-dialog v-model="showProfileDialog">
+        <q-dialog v-model="showDetailDialog">
           <q-card style="min-width: 800px; max-width: 1000px">
             <q-card-section class="modal-header">
               <div class="text-h6">
@@ -193,7 +193,7 @@ const productosFiltrados = ref([]);
 const proyectos = ref([]);
 const busqueda = ref("");
 const showAddDialog = ref(false);
-const showProfileDialog = ref(false);
+const showDetailDialog = ref(false);
 const isEditMode = ref(false);
 const selectedProducto = ref(null);
 const editingProducto = ref(null);
@@ -296,9 +296,9 @@ const handleAddProducto = () => {
   showAddDialog.value = true;
 };
 
-const handleViewPerfil = (p) => {
+const handleViewDetalle = (p) => {
   selectedProducto.value = p;
-  showProfileDialog.value = true;
+  showDetailDialog.value = true;
 };
 
 const handleEditProducto = (p) => {

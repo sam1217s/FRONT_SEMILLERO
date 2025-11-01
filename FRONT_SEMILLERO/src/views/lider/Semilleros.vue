@@ -44,7 +44,7 @@
             </div>
 
             <!-- TABLA PRINCIPAL -->
-            <Table v-else :rows="rowsMostrados" :columns="tableColumns" title="SEMILLEROS"
+            <Table v-else :rows="filtradatos" :columns="tableColumns" title="SEMILLEROS"
               add-button-label="AGREGAR" @add-item="openCreate">
               <template #options-column="{ row }">
                 <ActionButtons :row="row" :show-view="true" :show-edit="true" :show-toggle-status="true"
@@ -59,7 +59,7 @@
     </div>
 
     <!-- PERFIL -->
-    <q-dialog v-model="showProfileDialog">
+    <q-dialog v-model="showDetailDialog">
       <q-card style="min-width: 800px; max-width: 1000px">
         <q-card-section class="modal-header">
           <div class="text-h6">
@@ -170,7 +170,7 @@ const filtroEstado = ref(null)
 const filtroGrupo = ref(null)
 const filtroLider = ref(null)
 const showAddDialog = ref(false)
-const showProfileDialog = ref(false)
+const showDetailDialog = ref(false)
 const isEditMode = ref(false)
 const selectedSemillero = ref(null)
 const editingSemillero = ref(null)
@@ -197,7 +197,7 @@ const estadoOptions = [
 ]
 
 // === FILTRO AUTOMÁTICO ===
-const rowsMostrados = computed(() => {
+const filtradatos = computed(() => {
   let filtrados = [...semilleros.value]
 
   // Filtro por estado
@@ -389,7 +389,7 @@ const openCreate = () => {
 
 const openDetail = (semillero) => {
   selectedSemillero.value = semillero
-  showProfileDialog.value = true
+  showDetailDialog.value = true
 }
 
 const handleEditSemillero = (semillero) => {
@@ -411,7 +411,7 @@ const handleEditSemillero = (semillero) => {
 
 const openEditFromDetail = () => {
   if (!selectedSemillero.value) return
-  showProfileDialog.value = false
+  showDetailDialog.value = false
   handleEditSemillero(selectedSemillero.value)
 }
 

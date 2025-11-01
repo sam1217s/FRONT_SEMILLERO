@@ -40,7 +40,7 @@
             </div>
 
             <!-- TABLA PRINCIPAL -->
-            <Table v-else :rows="rowsMostrados" :columns="columns" title="REUNIONES"
+            <Table v-else :rows="filtradatos" :columns="columns" title="REUNIONES"
               add-button-label="NUEVA REUNIÓN" @add-item="openCreate">
               <template #options-column="{ row }">
                 <ActionButtons :row="row" :show-view="true" :show-edit="true" :show-toggle-status="false"
@@ -53,7 +53,7 @@
     </div>
 
     <!-- PERFIL -->
-    <q-dialog v-model="showProfileDialog">
+    <q-dialog v-model="showDetailDialog">
       <q-card style="min-width: 800px; max-width: 1000px">
         <q-card-section class="modal-header">
           <div class="text-h6">
@@ -175,7 +175,7 @@ const busqueda = ref('')
 const filtroEstado = ref(null)
 const filtroProyecto = ref(null)
 const showAddDialog = ref(false)
-const showProfileDialog = ref(false)
+const showDetailDialog = ref(false)
 const isEditMode = ref(false)
 const selectedReunion = ref(null)
 
@@ -210,7 +210,7 @@ const modalityOptions = [
 ]
 
 // === FILTRO AUTOMÁTICO ===
-const rowsMostrados = computed(() => {
+const filtradatos = computed(() => {
   let filtrados = [...reuniones.value]
 
   // Filtro por estado
@@ -418,7 +418,7 @@ const openEdit = (row) => {
 
 const openDetail = (row) => {
   selectedReunion.value = row
-  showProfileDialog.value = true
+  showDetailDialog.value = true
 }
 
 const closeDialog = () => {
