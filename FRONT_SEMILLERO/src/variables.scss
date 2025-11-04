@@ -1,0 +1,25 @@
+// Color Principal - Único color base del proyecto
+$primary-color: #71277A;
+
+// Hover más oscuro (10% más oscuro aproximadamente)
+$primary-hover: #5e2065;
+
+// Sombras y transparencias basadas en el color principal
+$primary-background: rgba(113, 39, 122, 0.1);
+$primary-shadow: rgba(113, 39, 122, 0.15);
+$shadow-light: rgba(113, 39, 122, 0.18);
+$shadow-dark: rgba(113, 39, 122, 0.3);
+
+// Alias para compatibilidad
+$positive-color: #21BA45;
+$negative-color: #C10015;
+$info-color: #31CCEC;
+$warning-color: #F2C037;
+
+// Paleta secundaria y acentos
+$secondary-color: #8b4392;
+$accent-color: #4cbb17;
+$dark-color: #1d1d1d;
+
+// Botones y efectos
+$button-hover: $primary-hover;
