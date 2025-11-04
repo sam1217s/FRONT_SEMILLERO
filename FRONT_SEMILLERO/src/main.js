@@ -10,6 +10,9 @@ import '@quasar/extras/material-icons/material-icons.css'
 // Import Quasar css
 import 'quasar/dist/quasar.css'
 
+// Import global styles with SCSS variables
+import './app.scss'
+
 // Import styles
 import './style.css'
 

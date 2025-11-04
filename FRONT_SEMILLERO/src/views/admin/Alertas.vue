@@ -273,31 +273,4 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.q-card {
-  border-radius: 12px;
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #71277A;
-}
-
-.section-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #71277A;
-  display: flex;
-  align-items: center;
-}
-
-.project-summary {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-}
-
-.text-primary {
-  color: #71277A !important;
-}
-</style>
+<!-- Los estilos globales están definidos en src/app.scss -->

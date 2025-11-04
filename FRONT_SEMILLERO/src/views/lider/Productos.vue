@@ -351,35 +351,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-.q-card {
-  border-radius: 12px;
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #71277A;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #71277A;
-  color: white;
-}
-
-.modal-header .text-h6 {
-  color: white;
-}
-
-.text-primary {
-  color: #71277A !important;
-}
-
-.info-item {
-  padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-</style>
+<!-- Los estilos globales están definidos en src/app.scss -->
