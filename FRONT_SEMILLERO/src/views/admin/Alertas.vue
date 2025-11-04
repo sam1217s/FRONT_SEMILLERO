@@ -273,4 +273,33 @@ onMounted(() => {
 })
 </script>
 
-<!-- Los estilos globales están definidos en src/app.scss -->
+<style lang="scss" scoped>
+@import '../../variables.scss';
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: $primary-color;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: $primary-color;
+  color: white;
+}
+
+.text-primary {
+  color: $primary-color !important;
+}
+
+.info-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-item strong {
+  color: $primary-color;
+}
+</style>
