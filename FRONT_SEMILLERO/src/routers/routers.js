@@ -40,31 +40,31 @@ const routes = [
       { path: "inicio", name: "Inicio", component: Inicio },
       
       // Rutas del líder
-      { path: "lider/actividades", name: "LiderActividades", component: LiderActividades },
-      { path: "lider/reuniones", name: "LiderReuniones", component: LiderReuniones },
-      { path: "lider/productos", name: "LiderProductos", component: LiderProductos },
-      { path: "lider/proyectos", name: "LiderProyectos", component: LiderProyectos },
-      { path: "lider/semilleros", name: "LiderSemilleros", component: LiderSemilleros },
-      { path: "lider/perfil", name: "LiderPerfil", component: LiderPerfil },
-      { path: "lider/equipo", name: "LiderEquipo", component: LiderEquipo },
-      { path: "lider/reportes", name: "LiderReportes", component: LiderReportes },
-      
+      { path: "lider/actividades", name: "LiderActividades", component: LiderActividades, meta: { roles: ['LIDER', 'ADMIN', 'INVESTIGADOR'] } },
+      { path: "lider/reuniones", name: "LiderReuniones", component: LiderReuniones, meta: { roles: ['LIDER', 'ADMIN'] } },
+      { path: "lider/productos", name: "LiderProductos", component: LiderProductos, meta: { roles: ['LIDER', 'ADMIN'] } },
+      { path: "lider/proyectos", name: "LiderProyectos", component: LiderProyectos, meta: { roles: ['LIDER', 'ADMIN'] } },
+      { path: "lider/semilleros", name: "LiderSemilleros", component: LiderSemilleros, meta: { roles: ['LIDER', 'ADMIN'] } },
+      { path: "lider/perfil", name: "LiderPerfil", component: LiderPerfil, meta: { roles: ['LIDER', 'ADMIN'] } },
+      { path: "lider/equipo", name: "LiderEquipo", component: LiderEquipo, meta: { roles: ['LIDER', 'ADMIN'] } },
+      { path: "lider/reportes", name: "LiderReportes", component: LiderReportes, meta: { roles: ['LIDER', 'ADMIN'] } },
+
       // Rutas del investigador
-      { path: "investigador/actividades", name: "InvestigadorActividades", component: InvestigadorActividades },
-      { path: "investigador/proyectos", name: "InvestigadorProyectos", component: InvestigadorProyectos },
-      { path: "investigador/perfil", name: "InvestigadorPerfil", component: InvestigadorPerfil },
-      { path: "investigador/documentos", name: "InvestigadorDocumentos", component: InvestigadorDocumentos },
-      
+      { path: "investigador/actividades", name: "InvestigadorActividades", component: InvestigadorActividades, meta: { roles: ['INVESTIGADOR'] } },
+      { path: "investigador/proyectos", name: "InvestigadorProyectos", component: InvestigadorProyectos, meta: { roles: ['INVESTIGADOR'] } },
+      { path: "investigador/perfil", name: "InvestigadorPerfil", component: InvestigadorPerfil, meta: { roles: ['INVESTIGADOR'] } },
+      { path: "investigador/documentos", name: "InvestigadorDocumentos", component: InvestigadorDocumentos, meta: { roles: ['INVESTIGADOR'] } },
+
       // Rutas del admin
-      { path: "admin/estadisticas", name: "AdminEstadisticas", component: AdminEstadisticas },
-      { path: "admin/proyectos", name: "AdminProyectos", component: AdminProyectos },
-      { path: "admin/investigadores", name: "AdminInvestigadores", component: AdminInvestigadores },
-      { path: "admin/grupos", name: "AdminGrupos", component: AdminGrupos },
-      { path: "admin/alertas", name: "AdminAlertas", component: AdminAlertas },
-      
+      { path: "admin/estadisticas", name: "AdminEstadisticas", component: AdminEstadisticas, meta: { roles: ['ADMIN'] } },
+      { path: "admin/proyectos", name: "AdminProyectos", component: AdminProyectos, meta: { roles: ['ADMIN'] } },
+      { path: "admin/investigadores", name: "AdminInvestigadores", component: AdminInvestigadores, meta: { roles: ['ADMIN'] } },
+      { path: "admin/grupos", name: "AdminGrupos", component: AdminGrupos, meta: { roles: ['ADMIN'] } },
+      { path: "admin/alertas", name: "AdminAlertas", component: AdminAlertas, meta: { roles: ['ADMIN'] } },
+
       // Rutas del super admin
-      { path: "super/administradores", name: "SuperAdministradores", component: SuperAdministradores },
-      { path: "super/centros", name: "SuperCentros", component: SuperCentros },
+      { path: "super/administradores", name: "SuperAdministradores", component: SuperAdministradores, meta: { roles: ['SUPER'] } },
+      { path: "super/centros", name: "SuperCentros", component: SuperCentros, meta: { roles: ['SUPER'] } },
     ]
   }
 ]
@@ -72,6 +72,56 @@ const routes = [
 const router = createRouter({
   history: createWebHashHistory(),
   routes
+})
+
+// Guard de navegación para verificar permisos por rol
+router.beforeEach((to, from, next) => {
+  // Permitir acceso al login sin verificación
+  if (to.path === '/') {
+    next()
+    return
+  }
+
+  // Obtener rol del usuario desde localStorage
+  const authData = localStorage.getItem('auth')
+  if (!authData) {
+    // Si no hay sesión, redirigir al login
+    next('/')
+    return
+  }
+
+  try {
+    const auth = JSON.parse(authData)
+    const userRole = auth.user?.role?.trim().toUpperCase()
+
+    // Si la ruta tiene roles definidos en meta
+    if (to.meta?.roles) {
+      if (!to.meta.roles.includes(userRole)) {
+        // Usuario no tiene permiso para esta ruta
+        console.warn(`Acceso denegado: Usuario con rol ${userRole} intentó acceder a ${to.path}`)
+
+        // Redirigir a la ruta apropiada según su rol
+        if (userRole === 'SUPER') {
+          next('/app/super/centros')
+        } else if (userRole === 'ADMIN') {
+          next('/app/admin/estadisticas')
+        } else if (userRole === 'LIDER') {
+          next('/app/lider/actividades')
+        } else if (userRole === 'INVESTIGADOR') {
+          next('/app/lider/actividades')
+        } else {
+          next('/')
+        }
+        return
+      }
+    }
+
+    // Usuario tiene permiso, continuar
+    next()
+  } catch (error) {
+    console.error('Error verificando permisos:', error)
+    next('/')
+  }
 })
 
 export default router

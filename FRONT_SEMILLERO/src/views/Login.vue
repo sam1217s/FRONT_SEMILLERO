@@ -182,9 +182,13 @@ const login = async () => {
     // Guardar sesión y redirigir
     authStore.setAuth(data.token, user);
 
-    if (["SUPER", "ADMIN"].includes(backendRole)) {
+    if (backendRole === "SUPER") {
       router.push("/app/super/centros");
-    } else if (["INVESTIGADOR", "LIDER"].includes(backendRole)) {
+    } else if (backendRole === "ADMIN") {
+      router.push("/app/admin/estadisticas");
+    } else if (backendRole === "LIDER") {
+      router.push("/app/lider/actividades");
+    } else if (backendRole === "INVESTIGADOR") {
       router.push("/app/lider/actividades");
     }
 
