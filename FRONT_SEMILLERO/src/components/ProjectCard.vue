@@ -95,7 +95,9 @@ defineEmits([
 ])
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@import '../variables.scss';
+
 .project-card {
   border-radius: 16px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -120,7 +122,7 @@ defineEmits([
 }
 
 .text-primary {
-  color: #71277A !important;
+  color: $primary-color !important;
   font-weight: 600;
   line-height: 1.3;
 }
@@ -135,15 +137,15 @@ defineEmits([
   .project-info {
     gap: 8px;
   }
-  
+
   .info-row {
     font-size: 0.85rem;
   }
-  
+
   .q-card-actions .row {
     flex-direction: column;
   }
-  
+
   .q-card-actions .col {
     width: 100%;
     margin-bottom: 8px;

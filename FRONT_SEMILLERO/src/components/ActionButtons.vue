@@ -130,7 +130,9 @@ const baseButtons = computed(() => [
 ])
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@import '../variables.scss';
+
 .q-btn {
   transition: all 0.2s ease;
 }

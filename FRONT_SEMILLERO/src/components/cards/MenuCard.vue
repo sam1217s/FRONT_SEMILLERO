@@ -62,7 +62,9 @@ const navigateToRoute = () => {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@import '../../variables.scss';
+
 .menu-card {
   width: 100%;
   max-width: 300px;
@@ -118,11 +120,11 @@ const navigateToRoute = () => {
     max-width: 250px;
     height: 180px;
   }
-  
+
   .card-content {
     padding: 20px;
   }
-  
+
   .card-icon {
     font-size: 40px;
   }
@@ -133,11 +135,11 @@ const navigateToRoute = () => {
     max-width: 100%;
     height: 160px;
   }
-  
+
   .card-content {
     padding: 16px;
   }
-  
+
   .card-icon {
     font-size: 36px;
   }

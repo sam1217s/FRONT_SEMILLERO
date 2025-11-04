@@ -30,7 +30,9 @@ const goHome = () => {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@import '../variables.scss';
+
 .placeholder-container {
   min-height: 100vh;
   display: flex;

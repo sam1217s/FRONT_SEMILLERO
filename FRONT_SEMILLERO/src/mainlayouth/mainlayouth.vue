@@ -881,27 +881,13 @@
   }
   </script>
   
-  <style scoped>
+  <style lang="scss" scoped>
+@import '../variables.scss';
+
   /* Variables globales basadas en quasar-variables.sass */
   :root {
     --header-height: 64px;
-    
-    /* Colores principales de Quasar */
-    --primary-color: #71277A;
-    --secondary-color: #8b4392;
-    --accent-color: #4cbb17;
-    
-    /* Colores de estado */
-    --positive-color: #21BA45;
-    --negative-color: #C10015;
-    --info-color: #31CCEC;
-    --warning-color: #F2C037;
-    --dark-color: #1d1d1d;
-    
-    /* Variantes de primary */
-    --primary-dark: #5b1f62;
-    --primary-light: #8d3d97;
-    
+
     /* Dimensiones */
     --sidebar-width-expanded: 280px;
     --sidebar-width-mini: 72px;
@@ -915,11 +901,11 @@
   
   /* Header con morado del tema */
   .custom-header {
-    background: #71277A !important;
-    background: linear-gradient(135deg, #71277A 0%, #5b1f62 100%) !important;
+    background: $primary-color !important;
+    background: linear-gradient(135deg, $primary-color 0%, $primary-hover 100%) !important;
     color: white !important;
     height: var(--header-height);
-    box-shadow: 0 2px 8px rgba(113, 39, 122, 0.3) !important;
+    box-shadow: 0 2px 8px $primary-shadow !important;
   }
   
   .header-container {
@@ -1041,7 +1027,7 @@
   /* Sidebar con hover expandible */
   .sidebar-drawer {
     background: white;
-    border-right: 2px solid rgba(113, 39, 122, 0.1);
+    border-right: 2px solid $primary-background;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
   
@@ -1057,8 +1043,8 @@
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    background: linear-gradient(135deg, rgba(113, 39, 122, 0.08) 0%, rgba(113, 39, 122, 0.03) 100%);
-    border-bottom: 2px solid rgba(113, 39, 122, 0.15);
+    background: linear-gradient(135deg, $primary-background 0%, rgba(113, 39, 122, 0.03) 100%);
+    border-bottom: 2px solid $primary-shadow;
     transition: all 0.3s ease;
   }
   
@@ -1080,9 +1066,9 @@
   
   .sidebar-user-role {
     font-size: 0.8rem;
-    color: var(--primary-dark);
+    color: $primary-hover;
     padding: 4px 12px;
-    background: rgba(113, 39, 122, 0.1);
+    background: $primary-background;
     border-radius: 12px;
     display: inline-block;
     border: 1px solid rgba(113, 39, 122, 0.2);
@@ -1101,7 +1087,7 @@
   .menu-section-title {
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--primary-dark);
+    color: $primary-hover;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: 12px 12px 8px;
@@ -1136,7 +1122,7 @@
     top: 0;
     height: 100%;
     width: 3px;
-    background: var(--primary-color);
+    background: $primary-color;
     border-radius: 0 4px 4px 0;
     transform: scaleY(0);
     transition: transform 0.2s ease;
@@ -1157,12 +1143,12 @@
   }
   
   .menu-item:hover {
-    background: linear-gradient(135deg, rgba(113, 39, 122, 0.12) 0%, rgba(113, 39, 122, 0.08) 100%);
+    background: linear-gradient(135deg, rgba(113, 39, 122, 0.12) 0%, $primary-background 100%);
   }
   
   .menu-item:hover .q-item-section,
   .menu-item:hover .q-icon {
-    color: var(--primary-dark);
+    color: $primary-hover;
   }
   
   .menu-item:hover .q-icon {
@@ -1201,7 +1187,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px;
-    border-bottom: 2px solid rgba(113, 39, 122, 0.1);
+    border-bottom: 2px solid $primary-background;
   }
   
   .notification-item {
@@ -1213,14 +1199,14 @@
   }
   
   .notification-unread {
-    background: linear-gradient(135deg, rgba(113, 39, 122, 0.08) 0%, rgba(113, 39, 122, 0.03) 100%);
-    border-left: 3px solid var(--primary-color);
+    background: linear-gradient(135deg, $primary-background 0%, rgba(113, 39, 122, 0.03) 100%);
+    border-left: 3px solid $primary-color;
   }
   
   /* Footer con acento verde */
   .custom-footer {
     background: white;
-    border-top: 2px solid rgba(113, 39, 122, 0.15);
+    border-top: 2px solid $primary-shadow;
     height: 48px;
   }
   

@@ -85,7 +85,9 @@ const getCellClass = (colName) => {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@import '../variables.scss';
+
 .projects-table-container {
   background: white;
   border-radius: 8px;
@@ -104,7 +106,7 @@ const getCellClass = (colName) => {
 .table-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #71277A;
+  color: $primary-color;
 }
 
 .table-actions {
@@ -129,11 +131,11 @@ const getCellClass = (colName) => {
 
 /* Header */
 .table-header-row {
-  background: #71277A !important;
+  background: $primary-color !important;
 }
 
 .table-header-cell {
-  background: #71277A !important;
+  background: $primary-color !important;
   color: white !important;
   font-weight: 600 !important;
   font-size: 0.95rem !important;
@@ -166,7 +168,7 @@ const getCellClass = (colName) => {
 }
 
 .name-cell {
-  color: #71277A !important;
+  color: $primary-color !important;
   font-weight: 600 !important;
   text-transform: uppercase;
   font-size: 0.875rem !important;

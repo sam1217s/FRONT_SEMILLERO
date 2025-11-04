@@ -199,10 +199,12 @@ const login = async () => {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@import '../variables.scss';
+
 .login-header {
-  background: linear-gradient(135deg, #71277a 0%, #5b1f62 100%);
-  box-shadow: 0 2px 8px rgba(113, 39, 122, 0.3);
+  background: linear-gradient(135deg, $primary-color 0%, $primary-hover 100%);
+  box-shadow: 0 2px 8px $primary-shadow;
 }
 
 .header-logo {
@@ -219,12 +221,12 @@ const login = async () => {
 
 .login-card {
   border-radius: 16px;
-  border: 3px solid #71277a !important;
-  box-shadow: 0 4px 16px rgba(113, 39, 122, 0.15);
+  border: 3px solid $primary-color !important;
+  box-shadow: 0 4px 16px $shadow-light;
 }
 
 .login-icon {
-  color: #71277a;
+  color: $primary-color;
 }
 
 .login-input :deep(.q-field__control) {
@@ -237,7 +239,7 @@ const login = async () => {
 }
 
 .login-input :deep(.q-field--outlined.q-field--highlighted .q-field__control) {
-  border: 2px solid #71277a;
+  border: 2px solid $primary-color;
 }
 
 .login-input :deep(.q-field__label) {
@@ -246,13 +248,13 @@ const login = async () => {
 }
 
 .login-button {
-  background: linear-gradient(135deg, #71277a 0%, #5b1f62 100%);
-  box-shadow: 0 4px 12px rgba(113, 39, 122, 0.3);
+  background: linear-gradient(135deg, $primary-color 0%, $primary-hover 100%);
+  box-shadow: 0 4px 12px $primary-shadow;
   transition: all 0.3s ease;
 }
 
 .login-button:hover {
-  box-shadow: 0 6px 16px rgba(113, 39, 122, 0.4);
+  box-shadow: 0 6px 16px $shadow-dark;
   transform: translateY(-2px);
 }
 </style>
