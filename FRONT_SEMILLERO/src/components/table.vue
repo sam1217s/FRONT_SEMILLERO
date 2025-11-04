@@ -70,10 +70,10 @@
               <!-- Estado -->
               <template v-else-if="col.name === 'status'">
                 <q-chip
-                  :color="props.row.status === 'Active' ? 'positive' : 'negative'"
+                  :color="props.row.status === 0 ? 'positive' : 'negative'"
                   text-color="white"
                   outline
-                  :label="props.row.status === 'Active' ? 'Activo' : 'Inactivo'"
+                  :label="props.row.status === 0 ? 'Activo' : 'Inactivo'"
                 />
               </template>
 

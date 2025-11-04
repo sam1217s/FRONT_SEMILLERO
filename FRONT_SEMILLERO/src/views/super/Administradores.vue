@@ -38,15 +38,8 @@
               <template #options-column="{ row }">
                 <ActionButtons :row="row" :show-view="true" :show-edit="true" :show-toggle-status="true"
                   view-tooltip="Ver perfil" edit-tooltip="Editar administrador" activate-tooltip="Activar"
-                  deactivate-tooltip="Desactivar" @view="handleViewPerfil(row)" @edit="handleEditAdministrador(row)"
+                  deactivate-tooltip="Desactivar" @view="handleViewDetalle(row)" @edit="handleEditAdministrador(row)"
                   @toggle-status="handleToggleStatus(row)" />
-              </template>
-              <template v-slot:body-cell-status="props">
-                <q-td>
-                  <span style="color: green;" v-if="props.row.status==1">¨{{ props.row.status }} </span>
-                  <span style="color: red;" v-else>{{ props.row.status }} </span>
-                </q-td>
-
               </template>
             </Table>
           </q-card-section>
@@ -72,7 +65,7 @@
                   <div class="info-item"><strong>Rol:</strong> ADMIN</div>
                   <div class="info-item">
                     <strong>Estado:</strong>
-                    <q-badge :color="selectedAdministrador.status === 1 ? 'positive' : 'grey'"
+                    <q-badge :color="selectedAdministrador.status === 0 ? 'positive' : 'grey'"
                       :label="selectedAdministrador.status === 0 ? 'Activo' : 'Inactivo'" />
                   </div>
                 </div>
@@ -267,7 +260,7 @@ const filtradatos= computed(()=>{
 // === ACCIONES ===
 
 // Ver perfil
-const handleViewPerfil = (a) => {
+const handleViewDetalle = (a) => {
   selectedAdministrador.value = a
   showDetailDialog.value = true
 }
